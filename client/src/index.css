@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+  --radius: 0.5rem;
+
+  /* Finance Tracker Custom Properties */
+  --gradient-primary-start: hsl(257, 42%, 7%);
+  --gradient-primary-end: hsl(251, 34%, 11%);
+  --gradient-sidebar-start: hsl(257, 42%, 9%);
+  --gradient-sidebar-end: hsl(257, 58%, 5%);
+  --stone-overlay: hsl(60, 7%, 40%, 0.2);
+  --stone-overlay-hover: hsl(60, 7%, 40%, 0.3);
+  --text-secondary: hsl(0, 0%, 100%, 0.6);
+  --text-muted: hsl(0, 0%, 100%, 0.4);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .font-geist {
+    font-family: 'Inter', sans-serif !important;
+  }
+
+  .font-jakarta {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+  }
+}
+
+@layer components {
+  .finance-gradient-bg {
+    background: linear-gradient(to bottom right, var(--gradient-primary-start), var(--gradient-primary-end));
+  }
+
+  .sidebar-gradient-bg {
+    background: linear-gradient(to bottom, var(--gradient-sidebar-start), var(--gradient-sidebar-end));
+  }
+
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-lg rounded-xl border border-white/10;
+  }
+
+  .nav-item {
+    @apply w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-stone-600/20 transition-colors;
+  }
+
+  .nav-item-active {
+    @apply bg-stone-600/20;
+  }
+
+  .metric-card {
+    @apply relative glass-card p-5;
+  }
+
+  .metric-card-gradient-blue {
+    background: linear-gradient(to bottom right, hsl(217, 91%, 60%, 0.2), hsl(271, 81%, 56%, 0.2));
+  }
+
+  .metric-card-gradient-green {
+    background: linear-gradient(to bottom right, hsl(142, 76%, 36%, 0.2), hsl(158, 64%, 52%, 0.2));
+  }
+
+  .metric-card-gradient-red {
+    background: linear-gradient(to bottom right, hsl(0, 84%, 60%, 0.2), hsl(327, 73%, 97%, 0.2));
+  }
+
+  .metric-card-gradient-purple {
+    background: linear-gradient(to bottom right, hsl(271, 81%, 56%, 0.2), hsl(247, 83%, 57%, 0.2));
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
