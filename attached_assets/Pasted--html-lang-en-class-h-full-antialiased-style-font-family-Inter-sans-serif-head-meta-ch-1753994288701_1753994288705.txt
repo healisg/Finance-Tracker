@@ -1,0 +1,405 @@
+<html lang="en" class="h-full antialiased" style="font-family:'Inter',sans-serif"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personal Finance Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  
+  
+  <script src="https://unpkg.com/lucide@latest/dist.umd.lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .font-geist { font-family: 'Geist', sans-serif !important; }
+    .font-jakarta { font-family: 'Plus Jakarta Sans', sans-serif !important; }
+  </style>
+</head>
+<body class="h-full flex items-center justify-center bg-[#585662] bg-[url(https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/a7b93216-616b-4c47-9f50-09f8fd2f70a2_3840w.jpg)] bg-cover pt-4 pr-4 pb-4 pl-4">
+  <div id="app" class="w-full max-w-[1440px] min-h-[600px] h-[min(900px,calc(100vh-2rem))] bg-gradient-to-br from-[#0d0b16] to-[#151226] rounded-lg overflow-hidden text-white">
+    <div class="flex h-full flex-col lg:flex-row">
+      <!-- sidebar -->
+      <aside class="w-full lg:w-64 bg-gradient-to-b from-[#191428] to-[#0e0a1c] flex flex-col lg:max-h-full overflow-y-auto">
+        <!-- logo -->
+        <div class="flex items-center gap-2 px-6 py-4 lg:py-6 flex-shrink-0">
+          <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+            <i data-lucide="wallet" class="w-4 h-4 text-white" stroke-width="1.5"></i>
+          </div>
+          <span class="text-lg font-semibold tracking-tight font-geist">FinanceTracker</span>
+        </div>
+
+        <!-- nav -->
+        <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+          <button class="group w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-stone-600/20 hover:bg-stone-600/30">
+            <i data-lucide="home" class="w-5 h-5" stroke-width="1.5"></i>
+            <span class="text-sm font-medium font-geist">Overview</span>
+          </button>
+          <button class="group w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-stone-600/20">
+            <i data-lucide="trending-up" class="w-5 h-5" stroke-width="1.5"></i>
+            <span class="text-sm font-medium font-geist">Income</span>
+          </button>
+          <button class="group w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-stone-600/20">
+            <i data-lucide="trending-down" class="w-5 h-5" stroke-width="1.5"></i>
+            <span class="text-sm font-medium font-geist">Expenses</span>
+          </button>
+          <button class="group w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-stone-600/20">
+            <i data-lucide="piggy-bank" class="w-5 h-5" stroke-width="1.5"></i>
+            <span class="text-sm font-medium font-geist">Savings</span>
+          </button>
+          <button class="group w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-stone-600/20">
+            <i data-lucide="credit-card" class="w-5 h-5" stroke-width="1.5"></i>
+            <span class="text-sm font-medium font-geist">Debts</span>
+          </button>
+          <button class="group w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-stone-600/20">
+            <i data-lucide="bar-chart-3" class="w-5 h-5" stroke-width="1.5"></i>
+            <span class="text-sm font-medium font-geist">Investments</span>
+          </button>
+          
+          <!-- Budget collapsible -->
+          <div>
+            <button id="budgetToggle" class="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-stone-600/20">
+              <div class="flex items-center gap-3">
+                <i data-lucide="target" class="w-5 h-5" stroke-width="1.5"></i>
+                <span class="text-sm font-medium font-geist">Budget &amp; Goals</span>
+              </div>
+              <i data-lucide="chevron-down" class="w-4 h-4 transition-transform" id="budgetChevron" stroke-width="1.5"></i>
+            </button>
+            <div id="budgetMenu" class="space-y-1 pl-11 mt-1 hidden">
+              <button class="w-full flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-stone-600/20 text-xs font-geist">
+                Monthly Budget
+              </button>
+              <button class="w-full flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-stone-600/20 text-xs font-geist">
+                Savings Goals
+              </button>
+              <button class="w-full flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-stone-600/20 text-xs font-geist">
+                Debt Payoff
+              </button>
+            </div>
+          </div>
+        </nav>
+
+        <!-- user -->
+        <div class="flex items-center gap-3 px-6 py-4 lg:py-6 flex-shrink-0">
+          <img src="https://i.pravatar.cc/40?img=5" alt="avatar" class="w-10 h-10 rounded-full object-cover">
+          <div class="flex-1">
+            <p class="text-sm font-medium font-geist">Alex Johnson</p>
+          </div>
+          <button class="w-8 h-8 flex items-center justify-center rounded-full bg-stone-600/30 hover:bg-stone-600/40">
+            <i data-lucide="settings" class="w-4 h-4" stroke-width="1.5"></i>
+          </button>
+        </div>
+      </aside>
+
+      <!-- content -->
+      <main class="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <!-- topbar -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-8 py-4 lg:py-6 border-b border-white/10 gap-4 flex-shrink-0">
+          <div>
+            <h1 class="text-2xl font-jakarta font-medium">Financial Overview</h1>
+            <p class="text-xs text-white/60 font-geist">Track your income, expenses, and savings goals</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10">
+              <i data-lucide="search" class="w-5 h-5" stroke-width="1.5"></i>
+            </button>
+            <button class="relative w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10">
+              <i data-lucide="bell" class="w-5 h-5" stroke-width="1.5"></i>
+              <span class="absolute top-1.5 right-1.5 block w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+            <button class="px-4 py-2 rounded-full bg-white text-sm font-medium text-black hover:bg-gray-200 font-geist">
+              Add Transaction
+            </button>
+          </div>
+        </div>
+
+        <!-- scrollable content -->
+        <div class="flex-1 overflow-y-auto">
+          <!-- cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 px-4 sm:px-8 py-4 lg:py-6">
+            <!-- Total Balance -->
+            <div class="relative bg-white/5 bg-[url(https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/8d0f3c19-2547-4b20-8911-9713329c4ca6_800w.jpg)] bg-cover rounded-xl pt-5 pr-5 pb-5 pl-5 backdrop-blur-lg">
+              <div class="flex mb-4 items-center justify-between">
+                <p class="text-xs text-white/60 flex items-center gap-1 font-geist">
+                  <i data-lucide="wallet" class="w-4 h-4" stroke-width="1.5"></i>
+                  Total Balance
+                </p>
+                <span class="text-xs text-green-400 font-geist">+12.5%</span>
+              </div>
+              <div class="text-2xl mb-6 font-jakarta font-medium">$8,450</div>
+              <div class="flex items-center justify-between text-xs">
+                <button class="underline underline-offset-2 font-geist">View Details</button>
+                <button class="w-7 h-7 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
+                  <i data-lucide="external-link" class="w-4 h-4" stroke-width="1.5"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Monthly Income -->
+            <div class="relative bg-white/5 bg-[url(https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/9dead2ce-9640-41bd-8153-af6e7acc42cf_800w.jpg)] bg-cover rounded-xl pt-5 pr-5 pb-5 pl-5 backdrop-blur-lg">
+              <div class="flex items-center justify-between mb-4">
+                <p class="text-xs text-white/60 flex items-center gap-1 font-geist">
+                  <i data-lucide="trending-up" class="w-4 h-4" stroke-width="1.5"></i>
+                  Monthly Income
+                </p>
+                <span class="text-xs text-blue-400 font-geist">+5.2%</span>
+              </div>
+              <div class="text-2xl mb-6 font-jakarta font-medium">$6,500</div>
+              <div class="flex items-center justify-between text-xs">
+                <button class="underline underline-offset-2 font-geist">View Details</button>
+                <button class="w-7 h-7 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
+                  <i data-lucide="external-link" class="w-4 h-4" stroke-width="1.5"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Monthly Expenses -->
+            <div class="relative bg-white/5 bg-[url(https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/86c20217-e734-45e2-a50b-0e5602db415c_800w.jpg)] bg-cover rounded-xl pt-5 pr-5 pb-5 pl-5 backdrop-blur-lg">
+              <div class="flex items-center justify-between mb-4">
+                <p class="text-xs text-white/60 flex items-center gap-1 font-geist">
+                  <i data-lucide="trending-down" class="w-4 h-4" stroke-width="1.5"></i>
+                  Monthly Expenses
+                </p>
+                <span class="text-xs text-red-400 font-geist">+8.1%</span>
+              </div>
+              <div class="text-2xl mb-6 font-jakarta font-medium">$4,200</div>
+              <div class="flex items-center justify-between text-xs">
+                <button class="underline underline-offset-2 font-geist">View Details</button>
+                <button class="w-7 h-7 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
+                  <i data-lucide="external-link" class="w-4 h-4" stroke-width="1.5"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Savings -->
+            <div class="relative bg-white/5 bg-[url(https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/8d0f3c19-2547-4b20-8911-9713329c4ca6_800w.jpg)] bg-cover rounded-xl pt-5 pr-5 pb-5 pl-5 backdrop-blur-lg">
+              <div class="flex items-center justify-between mb-4">
+                <p class="text-xs text-white/60 flex items-center gap-1 font-geist">
+                  <i data-lucide="piggy-bank" class="w-4 h-4" stroke-width="1.5"></i>
+                  Monthly Savings
+                </p>
+                <span class="text-xs text-purple-400 font-geist">+15.3%</span>
+              </div>
+              <div class="text-2xl mb-6 font-jakarta font-medium">$2,300</div>
+              <div class="flex items-center justify-between text-xs">
+                <button class="underline underline-offset-2 font-geist">View Details</button>
+                <button class="w-7 h-7 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
+                  <i data-lucide="external-link" class="w-4 h-4" stroke-width="1.5"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- charts -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 px-4 sm:px-8">
+            <!-- cash flow chart -->
+            <div class="bg-white/5 backdrop-blur-lg rounded-xl p-5 flex flex-col">
+              <div class="flex items-center justify-between mb-4">
+                <p class="text-sm font-medium flex items-center gap-2 font-geist">
+                  <i data-lucide="trending-up" class="w-5 h-5" stroke-width="1.5"></i>
+                  Monthly Cash Flow
+                </p>
+                <button class="text-xs px-3 py-1 rounded-full bg-stone-600/20 hover:bg-stone-600/30 font-geist">
+                  12M
+                </button>
+              </div>
+              <div class="flex-1 min-h-[180px] h-[220px]">
+                <canvas id="cashFlowChart"></canvas>
+              </div>
+            </div>
+
+            <!-- savings goals chart -->
+            <div class="bg-white/5 backdrop-blur-lg rounded-xl p-5 flex flex-col">
+              <div class="flex items-center justify-between mb-4">
+                <p class="text-sm font-medium flex items-center gap-2 font-geist">
+                  <i data-lucide="target" class="w-5 h-5" stroke-width="1.5"></i>
+                  Savings Goals
+                </p>
+              </div>
+              <div class="flex-1 min-h-[180px] h-[220px]">
+                <canvas id="savingsChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- transactions table -->
+          <div class="px-4 sm:px-8 py-4 lg:py-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+              <h2 class="text-lg font-semibold font-geist">Recent Transactions</h2>
+              <button class="flex items-center gap-1 text-xs hover:underline font-geist">
+                View All <i data-lucide="arrow-right" class="w-3 h-3" stroke-width="1.5"></i>
+              </button>
+            </div>
+            <div class="overflow-x-auto rounded-lg border border-white/10">
+              <table class="min-w-full text-xs">
+                <thead class="bg-white/5">
+                  <tr>
+                    <th class="px-4 py-3 text-left font-medium font-geist">Description</th>
+                    <th class="px-4 py-3 text-left font-medium font-geist">Category</th>
+                    <th class="px-4 py-3 text-left font-medium font-geist">Date</th>
+                    <th class="px-4 py-3 text-left font-medium font-geist">Amount</th>
+                    <th class="px-4 py-3 text-left font-medium font-geist">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="border-t border-white/5 hover:bg-white/5">
+                    <td class="px-4 py-3 flex items-center gap-2 font-geist">
+                      <i data-lucide="briefcase" class="w-4 h-4 text-green-400" stroke-width="1.5"></i>
+                      Monthly Salary
+                    </td>
+                    <td class="px-4 py-3 font-geist">Income</td>
+                    <td class="px-4 py-3 font-geist">Dec 1, 2023</td>
+                    <td class="px-4 py-3 font-geist text-green-400">+$5,500</td>
+                    <td class="px-4 py-3">
+                      <span class="px-2 py-1 rounded-full bg-green-500/20 text-green-400 font-geist">Completed</span>
+                    </td>
+                  </tr>
+                  <tr class="border-t border-white/5 hover:bg-white/5">
+                    <td class="px-4 py-3 flex items-center gap-2 font-geist">
+                      <i data-lucide="home" class="w-4 h-4 text-orange-400" stroke-width="1.5"></i>
+                      Rent Payment
+                    </td>
+                    <td class="px-4 py-3 font-geist">Housing</td>
+                    <td class="px-4 py-3 font-geist">Dec 1, 2023</td>
+                    <td class="px-4 py-3 font-geist text-red-400">-$1,200</td>
+                    <td class="px-4 py-3">
+                      <span class="px-2 py-1 rounded-full bg-orange-500/20 text-orange-400 font-geist">Processed</span>
+                    </td>
+                  </tr>
+                  <tr class="border-t border-white/5 hover:bg-white/5">
+                    <td class="px-4 py-3 flex items-center gap-2 font-geist">
+                      <i data-lucide="shopping-cart" class="w-4 h-4 text-blue-400" stroke-width="1.5"></i>
+                      Grocery Shopping
+                    </td>
+                    <td class="px-4 py-3 font-geist">Food</td>
+                    <td class="px-4 py-3 font-geist">Nov 30, 2023</td>
+                    <td class="px-4 py-3 font-geist text-red-400">-$150</td>
+                    <td class="px-4 py-3">
+                      <span class="px-2 py-1 rounded-full bg-green-500/20 text-green-400 font-geist">Completed</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Lucide icons
+    window.addEventListener('load', function() {
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    });
+
+    // Collapsible Budget menu
+    document.getElementById('budgetToggle').addEventListener('click', () => {
+      const menu = document.getElementById('budgetMenu');
+      const chevron = document.getElementById('budgetChevron');
+      menu.classList.toggle('hidden');
+      chevron.classList.toggle('rotate-180');
+    });
+
+    // Cash Flow Chart
+    const ctx1 = document.getElementById('cashFlowChart').getContext('2d');
+    const cashFlowChart = new Chart(ctx1, {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [
+          {
+            label: 'Income',
+            data: [6200, 6500, 6300, 6800, 6500, 6500, 6700, 6400, 6600, 6900, 6500, 6800],
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            tension: 0.4,
+            fill: false,
+            pointBackgroundColor: '#10b981',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: 4
+          },
+          {
+            label: 'Expenses',
+            data: [4100, 4300, 4000, 4500, 4200, 4200, 4400, 4100, 4300, 4600, 4200, 4500],
+            borderColor: '#ef4444',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            tension: 0.4,
+            fill: false,
+            pointBackgroundColor: '#ef4444',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: 4
+          }
+        ]
+      },
+      options: {
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
+              color: 'rgba(255, 255, 255, 0.8)',
+              font: { size: 11 },
+              usePointStyle: true
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+            ticks: { color: 'rgba(255, 255, 255, 0.6)', font: { size: 10 } }
+          },
+          y: {
+            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+            ticks: {
+              color: 'rgba(255, 255, 255, 0.6)',
+              font: { size: 10 },
+              callback: function(value) { return '$' + value.toLocaleString(); }
+            }
+          }
+        },
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { intersect: false, mode: 'index' }
+      }
+    });
+
+    // Savings Goals Chart
+    const ctx2 = document.getElementById('savingsChart').getContext('2d');
+    const savingsChart = new Chart(ctx2, {
+      type: 'doughnut',
+      data: {
+        labels: ['Emergency Fund', 'Vacation', 'New Car', 'Investment'],
+        datasets: [{
+          data: [12500, 3200, 8900, 5600],
+          backgroundColor: [
+            '#10b981',
+            '#3b82f6',
+            '#8b5cf6',
+            '#f59e0b'
+          ],
+          borderWidth: 0,
+          cutout: '60%'
+        }]
+      },
+      options: {
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
+              color: 'rgba(255, 255, 255, 0.8)',
+              font: { size: 10 },
+              usePointStyle: true,
+              pointStyle: 'circle'
+            }
+          }
+        },
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+  </script>
+
+</body></html>
