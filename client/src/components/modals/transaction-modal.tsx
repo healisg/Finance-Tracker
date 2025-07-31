@@ -46,7 +46,7 @@ export default function TransactionModal({ isOpen, onClose }: TransactionModalPr
     mutationFn: async (data: TransactionFormData) => {
       const response = await apiRequest('POST', '/api/transactions', {
         ...data,
-        amount: parseFloat(data.amount),
+        amount: data.amount,
       });
       return response.json();
     },
