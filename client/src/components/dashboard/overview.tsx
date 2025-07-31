@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Wallet, TrendingUp, TrendingDown, PiggyBank, ExternalLink, ArrowUp, ArrowDown, Car, Edit2 } from "lucide-react";
 import CashFlowChart from "@/components/charts/cash-flow-chart";
 import ExpenseCategoriesChart from "@/components/charts/expense-categories-chart";
+import ExpenseSummary from "@/components/expense-groups/expense-summary";
 import { useCurrency } from "@/hooks/use-currency";
 import type { Transaction } from "@shared/schema";
 
@@ -206,6 +207,11 @@ export default function Overview({ onEditTransaction }: OverviewProps) {
         <div className="transition-all duration-300 hover:scale-[1.02]">
           <ExpenseCategoriesChart />
         </div>
+      </div>
+
+      {/* Expense Groups Summary */}
+      <div className="px-4 sm:px-8 py-4">
+        <ExpenseSummary />
       </div>
 
       {/* Recent Transactions */}

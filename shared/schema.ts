@@ -1,5 +1,5 @@
 import { sql, relations } from "drizzle-orm";
-import { pgTable, text, varchar, decimal, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, decimal, timestamp, integer, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -19,6 +19,9 @@ export const transactions = pgTable("transactions", {
   category: text("category").notNull(),
   description: text("description").notNull(),
   date: timestamp("date").notNull(),
+  // New expense grouping fields
+  expenseGroup: text("expense_group"), // 'fundamentals', 'fun', 'future-you'
+  isSharedExpense: boolean("is_shared_expense").default(false), // true if split with spouse
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -182,3 +185,12 @@ export type Budget = typeof budgets.$inferSelect;
 export type InsertBudget = z.infer<typeof insertBudgetSchema>;
 export type FinancialGoal = typeof financialGoals.$inferSelect;
 export type InsertFinancialGoal = z.infer<typeof insertFinancialGoalSchema>;
+
+// Expense group constants
+export const EXPENSE_GROUPS = {
+  FUNDAMENTALS: 'fundamentals',
+  FUN: 'fun',
+  FUTURE_YOU: 'future-you'
+} as const;
+
+export type ExpenseGroup = typeof EXPENSE_GROUPS[keyof typeof EXPENSE_GROUPS];

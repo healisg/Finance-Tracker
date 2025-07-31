@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Transaction } from "@shared/schema";
+import { EXPENSE_GROUPS } from "@shared/schema";
 
 const transactionSchema = z.object({
   type: z.enum(['income', 'expense', 'transfer']),
@@ -20,6 +21,8 @@ const transactionSchema = z.object({
   category: z.string().min(1, "Category is required"),
   description: z.string().min(1, "Description is required"),
   date: z.string().min(1, "Date is required"),
+  expenseGroup: z.enum(['fundamentals', 'fun', 'future-you']).optional(),
+  isSharedExpense: z.boolean().optional(),
   splitBill: z.boolean().optional(),
 });
 
@@ -43,6 +46,8 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
       category: '',
       description: '',
       date: new Date().toISOString().split('T')[0],
+      expenseGroup: undefined,
+      isSharedExpense: false,
       splitBill: false,
     },
   });
@@ -67,6 +72,8 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
         category: editTransaction.category,
         description: originalDescription,
         date: new Date(editTransaction.date).toISOString().split('T')[0],
+        expenseGroup: editTransaction.expenseGroup as 'fundamentals' | 'fun' | 'future-you' | undefined,
+        isSharedExpense: editTransaction.isSharedExpense || false,
         splitBill: wasSplitBill,
       });
     } else {
@@ -76,6 +83,8 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
         category: '',
         description: '',
         date: new Date().toISOString().split('T')[0],
+        expenseGroup: undefined,
+        isSharedExpense: false,
         splitBill: false,
       });
     }
@@ -97,9 +106,14 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
       const url = editTransaction ? `/api/transactions/${editTransaction.id}` : '/api/transactions';
       
       const response = await apiRequest(method, url, {
-        ...data,
+        userId: 'alex.johnson',
+        type: data.type,
         amount: finalAmount,
+        category: data.category,
         description: finalDescription,
+        date: data.date + 'T00:00:00.000Z',
+        expenseGroup: data.expenseGroup,
+        isSharedExpense: data.isSharedExpense,
       });
       return response.json();
     },
