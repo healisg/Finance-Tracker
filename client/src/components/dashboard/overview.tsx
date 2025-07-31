@@ -16,6 +16,11 @@ interface DashboardSummary {
     date: string;
     category: string;
   }>;
+  forecast?: {
+    nextMonthIncome: number;
+    nextMonthExpenses: number;
+    nextMonthNet: number;
+  };
 }
 
 export default function Overview() {
@@ -152,6 +157,46 @@ export default function Overview() {
           </div>
         </div>
       </div>
+
+      {/* Next Month Forecast */}
+      {summary?.forecast && (summary.forecast.nextMonthIncome > 0 || summary.forecast.nextMonthExpenses > 0) && (
+        <div className="px-4 sm:px-8 mb-6">
+          <h3 className="text-lg font-medium text-white mb-4 font-geist">Next Month Forecast</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="w-4 h-4 text-green-400" strokeWidth={1.5} />
+                <span className="text-sm text-white/60 font-geist">Expected Income</span>
+              </div>
+              <div className="text-xl font-medium text-green-400 font-jakarta">
+                {formatCurrency(summary.forecast.nextMonthIncome)}
+              </div>
+            </div>
+            
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingDown className="w-4 h-4 text-red-400" strokeWidth={1.5} />
+                <span className="text-sm text-white/60 font-geist">Expected Expenses</span>
+              </div>
+              <div className="text-xl font-medium text-red-400 font-jakarta">
+                {formatCurrency(summary.forecast.nextMonthExpenses)}
+              </div>
+            </div>
+            
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Wallet className="w-4 h-4 text-blue-400" strokeWidth={1.5} />
+                <span className="text-sm text-white/60 font-geist">Net Forecast</span>
+              </div>
+              <div className={`text-xl font-medium font-jakarta ${
+                summary.forecast.nextMonthNet >= 0 ? 'text-green-400' : 'text-red-400'
+              }`}>
+                {formatCurrency(summary.forecast.nextMonthNet)}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 px-4 sm:px-8">

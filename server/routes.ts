@@ -217,41 +217,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Dashboard summary route
+  // Dashboard summary route - includes future transactions for forecasting
   app.get("/api/dashboard/summary", async (req, res) => {
     try {
       const transactions = await storage.getTransactions(DEFAULT_USER_ID);
       const savingsPots = await storage.getSavingsPots(DEFAULT_USER_ID);
       
-      const currentMonth = new Date().getMonth() + 1;
-      const currentYear = new Date().getFullYear();
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
+      const nextMonth = now.getMonth() + 2 > 12 ? 1 : now.getMonth() + 2;
+      const nextYear = now.getMonth() + 2 > 12 ? now.getFullYear() + 1 : now.getFullYear();
       
-      // Calculate monthly totals
-      const monthlyTransactions = transactions.filter(t => {
+      // Calculate current month totals (past + future within current month)
+      const currentMonthTransactions = transactions.filter(t => {
         const transactionDate = new Date(t.date);
         return transactionDate.getMonth() + 1 === currentMonth && 
                transactionDate.getFullYear() === currentYear;
       });
       
-      const monthlyIncome = monthlyTransactions
+      // Calculate next month totals for forecasting
+      const nextMonthTransactions = transactions.filter(t => {
+        const transactionDate = new Date(t.date);
+        return transactionDate.getMonth() + 1 === nextMonth && 
+               transactionDate.getFullYear() === nextYear;
+      });
+      
+      const currentMonthIncome = currentMonthTransactions
         .filter(t => t.type === 'income')
         .reduce((sum, t) => sum + parseFloat(t.amount), 0);
       
-      const monthlyExpenses = monthlyTransactions
+      const currentMonthExpenses = currentMonthTransactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+
+      const nextMonthIncome = nextMonthTransactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+      
+      const nextMonthExpenses = nextMonthTransactions
         .filter(t => t.type === 'expense')
         .reduce((sum, t) => sum + parseFloat(t.amount), 0);
       
       const totalSavings = savingsPots
         .reduce((sum, pot) => sum + parseFloat(pot.currentAmount || '0'), 0);
       
-      const totalBalance = monthlyIncome - monthlyExpenses + totalSavings;
+      // Total balance includes all transactions (past and future)
+      const allIncomeTransactions = transactions.filter(t => t.type === 'income');
+      const allExpenseTransactions = transactions.filter(t => t.type === 'expense');
+      const totalIncome = allIncomeTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
+      const totalExpenses = allExpenseTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
+      const totalBalance = totalIncome - totalExpenses + totalSavings;
+      
+      // Sort transactions by date descending for recent transactions
+      const sortedTransactions = transactions.sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
       
       res.json({
         totalBalance,
-        monthlyIncome,
-        monthlyExpenses,
+        monthlyIncome: currentMonthIncome,
+        monthlyExpenses: currentMonthExpenses,
         totalSavings,
-        recentTransactions: transactions.slice(0, 5)
+        recentTransactions: sortedTransactions.slice(0, 5),
+        forecast: {
+          nextMonthIncome,
+          nextMonthExpenses,
+          nextMonthNet: nextMonthIncome - nextMonthExpenses
+        }
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch dashboard summary" });

@@ -1,7 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, ChevronLeft, ChevronRight } from "lucide-react";
 import { Chart, registerables } from "chart.js";
+import { Button } from "@/components/ui/button";
 import type { Transaction } from "@shared/schema";
 
 Chart.register(...registerables);
@@ -9,6 +10,8 @@ Chart.register(...registerables);
 export default function CashFlowChart() {
   const chartRef = useRef<HTMLCanvasElement>(null);
   const chartInstance = useRef<Chart | null>(null);
+  const [viewMode, setViewMode] = useState<'past' | 'forecast'>('forecast');
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   const { data: transactions } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions"],
@@ -25,15 +28,18 @@ export default function CashFlowChart() {
     const ctx = chartRef.current.getContext('2d');
     if (!ctx) return;
 
-    // Process data for the last 12 months
+    // Process data based on view mode
     const months = [];
     const incomeData = [];
     const expenseData = [];
     
-    for (let i = 11; i >= 0; i--) {
-      const date = new Date();
+    const startOffset = viewMode === 'past' ? 11 : 5; // Show 6 months back + 6 months forward for forecast
+    const endOffset = viewMode === 'past' ? 0 : -6;
+    
+    for (let i = startOffset; i >= endOffset; i--) {
+      const date = new Date(currentDate);
       date.setMonth(date.getMonth() - i);
-      const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+      const monthName = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
       months.push(monthName);
       
       const monthTransactions = transactions?.filter((t: Transaction) => {
@@ -137,7 +143,13 @@ export default function CashFlowChart() {
         chartInstance.current.destroy();
       }
     };
-  }, [transactions]);
+  }, [transactions, viewMode, currentDate]);
+
+  const navigateTime = (direction: 'prev' | 'next') => {
+    const newDate = new Date(currentDate);
+    newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1));
+    setCurrentDate(newDate);
+  };
 
   return (
     <div className="glass-card p-5 flex flex-col">
@@ -146,13 +158,70 @@ export default function CashFlowChart() {
           <TrendingUp className="w-5 h-5" strokeWidth={1.5} />
           Monthly Cash Flow
         </p>
-        <button className="text-xs px-3 py-1 rounded-full bg-stone-600/20 hover:bg-stone-600/30 font-geist">
-          12M
-        </button>
+        
+        <div className="flex items-center gap-2">
+          <div className="flex bg-white/5 rounded-lg p-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewMode('past')}
+              className={`px-3 py-1 text-xs rounded-md ${
+                viewMode === 'past' 
+                  ? 'bg-white/20 text-white' 
+                  : 'text-white/60 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              Past Year
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewMode('forecast')}
+              className={`px-3 py-1 text-xs rounded-md ${
+                viewMode === 'forecast' 
+                  ? 'bg-white/20 text-white' 
+                  : 'text-white/60 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              Forecast
+            </Button>
+          </div>
+          
+          {viewMode === 'forecast' && (
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigateTime('prev')}
+                className="w-8 h-8 p-0 text-white/60 hover:text-white hover:bg-white/10"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <span className="text-xs text-white/60 min-w-16 text-center">
+                {currentDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigateTime('next')}
+                className="w-8 h-8 p-0 text-white/60 hover:text-white hover:bg-white/10"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
+      
       <div className="flex-1 min-h-[180px] h-[220px]">
         <canvas ref={chartRef} />
       </div>
+      
+      {viewMode === 'forecast' && (
+        <div className="mt-2 text-xs text-white/60 text-center">
+          Showing 6 months back and 6 months forward including future transactions
+        </div>
+      )}
     </div>
   );
 }
