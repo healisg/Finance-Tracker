@@ -10,6 +10,7 @@ import Investments from "@/components/dashboard/investments";
 import Budget from "@/components/dashboard/budget";
 import Goals from "@/components/dashboard/goals";
 import TransactionModal from "@/components/modals/transaction-modal";
+import type { Transaction } from "@shared/schema";
 
 export type SectionType = 'overview' | 'income' | 'expenses' | 'savings' | 'debts' | 'investments' | 'budget' | 'goals' | 'payoff';
 
@@ -55,11 +56,22 @@ const sectionData = {
 export default function Dashboard() {
   const [activeSection, setActiveSection] = useState<SectionType>('overview');
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+  const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
+
+  const openEditModal = (transaction: Transaction) => {
+    setEditTransaction(transaction);
+    setIsTransactionModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsTransactionModalOpen(false);
+    setEditTransaction(null);
+  };
 
   const renderSection = () => {
     switch (activeSection) {
       case 'overview':
-        return <Overview />;
+        return <Overview onEditTransaction={openEditModal} />;
       case 'income':
         return <Income />;
       case 'expenses':
@@ -75,7 +87,7 @@ export default function Dashboard() {
       case 'goals':
         return <Goals />;
       default:
-        return <Overview />;
+        return <Overview onEditTransaction={openEditModal} />;
     }
   };
 
@@ -104,7 +116,8 @@ export default function Dashboard() {
 
       <TransactionModal
         isOpen={isTransactionModalOpen}
-        onClose={() => setIsTransactionModalOpen(false)}
+        onClose={closeModal}
+        editTransaction={editTransaction}
       />
     </div>
   );

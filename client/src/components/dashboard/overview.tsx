@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { Wallet, TrendingUp, TrendingDown, PiggyBank, ExternalLink, ArrowUp, ArrowDown, Car } from "lucide-react";
+import { Wallet, TrendingUp, TrendingDown, PiggyBank, ExternalLink, ArrowUp, ArrowDown, Car, Edit2 } from "lucide-react";
 import CashFlowChart from "@/components/charts/cash-flow-chart";
 import ExpenseCategoriesChart from "@/components/charts/expense-categories-chart";
+import type { Transaction } from "@shared/schema";
 
 interface DashboardSummary {
   totalBalance: number;
@@ -23,7 +24,11 @@ interface DashboardSummary {
   };
 }
 
-export default function Overview() {
+interface OverviewProps {
+  onEditTransaction?: (transaction: Transaction) => void;
+}
+
+export default function Overview({ onEditTransaction }: OverviewProps) {
   const { data: summary, isLoading } = useQuery<DashboardSummary>({
     queryKey: ["/api/dashboard/summary"],
   });
@@ -215,7 +220,7 @@ export default function Overview() {
           <div className="space-y-3">
             {summary?.recentTransactions?.length ? (
               summary.recentTransactions.map((transaction) => (
-                <div key={transaction.id} className="flex items-center justify-between py-2">
+                <div key={transaction.id} className="flex items-center justify-between py-2 group">
                   <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 ${
                       transaction.type === 'income' ? 'bg-green-600/20' : 
@@ -234,9 +239,20 @@ export default function Overview() {
                       </p>
                     </div>
                   </div>
-                  <span className={`text-sm font-medium font-geist ${getTransactionColor(transaction.type)}`}>
-                    {transaction.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(parseFloat(transaction.amount)))}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-medium font-geist ${getTransactionColor(transaction.type)}`}>
+                      {transaction.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(parseFloat(transaction.amount)))}
+                    </span>
+                    {onEditTransaction && (
+                      <button
+                        onClick={() => onEditTransaction(transaction as Transaction)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-white/10 rounded-md"
+                        title="Edit transaction"
+                      >
+                        <Edit2 className="w-4 h-4 text-white/60 hover:text-white" strokeWidth={1.5} />
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))
             ) : (

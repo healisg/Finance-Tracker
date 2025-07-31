@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import type { Transaction } from "@shared/schema";
 
 const transactionSchema = z.object({
   type: z.enum(['income', 'expense', 'transfer']),
@@ -27,9 +28,10 @@ type TransactionFormData = z.infer<typeof transactionSchema>;
 interface TransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
+  editTransaction?: Transaction | null;
 }
 
-export default function TransactionModal({ isOpen, onClose }: TransactionModalProps) {
+export default function TransactionModal({ isOpen, onClose, editTransaction }: TransactionModalProps) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -45,7 +47,41 @@ export default function TransactionModal({ isOpen, onClose }: TransactionModalPr
     },
   });
 
-  const createTransactionMutation = useMutation({
+  // Update form when editing a transaction
+  useEffect(() => {
+    if (editTransaction) {
+      // Check if the transaction was a split bill by looking at the description
+      const wasSplitBill = editTransaction.description.includes('(Split bill');
+      const originalDescription = wasSplitBill 
+        ? editTransaction.description.split(' (Split bill')[0] 
+        : editTransaction.description;
+      
+      // If it was a split bill, double the amount to show the original total
+      const originalAmount = wasSplitBill && editTransaction.type === 'expense'
+        ? (parseFloat(editTransaction.amount) * 2).toString()
+        : editTransaction.amount;
+
+      form.reset({
+        type: editTransaction.type as 'income' | 'expense' | 'transfer',
+        amount: originalAmount,
+        category: editTransaction.category,
+        description: originalDescription,
+        date: new Date(editTransaction.date).toISOString().split('T')[0],
+        splitBill: wasSplitBill,
+      });
+    } else {
+      form.reset({
+        type: 'expense',
+        amount: '',
+        category: '',
+        description: '',
+        date: new Date().toISOString().split('T')[0],
+        splitBill: false,
+      });
+    }
+  }, [editTransaction, form]);
+
+  const saveTransactionMutation = useMutation({
     mutationFn: async (data: TransactionFormData) => {
       // Calculate the final amount - split in half if splitBill is enabled
       const finalAmount = data.splitBill && data.type === 'expense' 
@@ -57,7 +93,10 @@ export default function TransactionModal({ isOpen, onClose }: TransactionModalPr
         ? `${data.description} (Split bill - your share: $${finalAmount})`
         : data.description;
 
-      const response = await apiRequest('POST', '/api/transactions', {
+      const method = editTransaction ? 'PUT' : 'POST';
+      const url = editTransaction ? `/api/transactions/${editTransaction.id}` : '/api/transactions';
+      
+      const response = await apiRequest(method, url, {
         ...data,
         amount: finalAmount,
         description: finalDescription,
@@ -69,7 +108,7 @@ export default function TransactionModal({ isOpen, onClose }: TransactionModalPr
       queryClient.invalidateQueries({ queryKey: ['/api/dashboard/summary'] });
       toast({
         title: "Success",
-        description: "Transaction added successfully",
+        description: editTransaction ? "Transaction updated successfully" : "Transaction added successfully",
       });
       onClose();
       form.reset();
@@ -77,14 +116,14 @@ export default function TransactionModal({ isOpen, onClose }: TransactionModalPr
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to add transaction",
+        description: error.message || (editTransaction ? "Failed to update transaction" : "Failed to add transaction"),
         variant: "destructive",
       });
     },
   });
 
   const onSubmit = async (data: TransactionFormData) => {
-    createTransactionMutation.mutate(data);
+    saveTransactionMutation.mutate(data);
   };
 
   const categoryOptions = {
@@ -132,7 +171,9 @@ export default function TransactionModal({ isOpen, onClose }: TransactionModalPr
       <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
         <div className="sidebar-gradient-bg rounded-xl w-full max-w-md border border-white/10">
           <div className="flex items-center justify-between p-6 border-b border-white/10">
-            <h2 className="text-xl font-jakarta font-semibold">Add Transaction</h2>
+            <h2 className="text-xl font-jakarta font-semibold">
+              {editTransaction ? 'Edit Transaction' : 'Add Transaction'}
+            </h2>
             <button 
               onClick={onClose}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10"
@@ -294,10 +335,13 @@ export default function TransactionModal({ isOpen, onClose }: TransactionModalPr
                 </Button>
                 <Button
                   type="submit"
-                  disabled={createTransactionMutation.isPending}
+                  disabled={saveTransactionMutation.isPending}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  {createTransactionMutation.isPending ? 'Adding...' : 'Add Transaction'}
+                  {saveTransactionMutation.isPending 
+                    ? (editTransaction ? 'Updating...' : 'Adding...') 
+                    : (editTransaction ? 'Update Transaction' : 'Add Transaction')
+                  }
                 </Button>
               </div>
             </form>
