@@ -252,28 +252,84 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
               />
 
               {selectedType === 'expense' && (
-                <FormField
-                  control={form.control}
-                  name="splitBill"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-white/20 p-3 bg-white/5">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-sm font-medium font-geist">
-                          Split Bill
-                        </FormLabel>
-                        <div className="text-xs text-white/60">
-                          Divide expense in half with spouse
+                <>
+                  <FormField
+                    control={form.control}
+                    name="expenseGroup"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium font-geist">Expense Category</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                              <SelectValue placeholder="Select expense category" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="fundamentals">Fundamentals</SelectItem>
+                            <SelectItem value="fun">Fun</SelectItem>
+                            <SelectItem value="future-you">Future You</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <div className="text-xs text-white/60 mt-1">
+                          {field.value === 'fundamentals' && 'Essential household expenses and bills'}
+                          {field.value === 'fun' && 'Entertainment and discretionary spending'}
+                          {field.value === 'future-you' && 'Investments and savings for future goals'}
                         </div>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Only show shared expense option for Fundamentals */}
+                  {form.watch('expenseGroup') === 'fundamentals' && (
+                    <FormField
+                      control={form.control}
+                      name="isSharedExpense"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border border-white/20 p-3 bg-white/5">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-sm font-medium font-geist">
+                              Shared with Spouse
+                            </FormLabel>
+                            <div className="text-xs text-white/60 font-geist">
+                              This is a joint household expense
+                            </div>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
                   )}
-                />
+
+                  <FormField
+                    control={form.control}
+                    name="splitBill"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border border-white/20 p-3 bg-white/5">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-sm font-medium font-geist">
+                            Split Bill
+                          </FormLabel>
+                          <div className="text-xs text-white/60">
+                            Divide expense in half with spouse
+                          </div>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </>
               )}
 
               <FormField
