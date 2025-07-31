@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { TrendingUp, ChevronLeft, ChevronRight } from "lucide-react";
 import { Chart, registerables } from "chart.js";
 import { Button } from "@/components/ui/button";
+import { useCurrency } from "@/hooks/use-currency";
 import type { Transaction } from "@shared/schema";
 
 Chart.register(...registerables);
@@ -12,6 +13,7 @@ export default function CashFlowChart() {
   const chartInstance = useRef<Chart | null>(null);
   const [viewMode, setViewMode] = useState<'past' | 'forecast'>('forecast');
   const [currentDate, setCurrentDate] = useState(new Date());
+  const { formatCurrency } = useCurrency();
 
   const { data: transactions } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions"],
@@ -105,6 +107,15 @@ export default function CashFlowChart() {
               padding: 20,
             },
           },
+          tooltip: {
+            callbacks: {
+              label: function(context: any) {
+                const label = context.dataset.label || '';
+                const value = context.parsed.y;
+                return `${label}: ${formatCurrency(value)}`;
+              }
+            }
+          }
         },
         scales: {
           x: {
@@ -126,7 +137,7 @@ export default function CashFlowChart() {
               color: 'rgba(255, 255, 255, 0.6)',
               font: { size: 10 },
               callback: function(value: any) { 
-                return '$' + (value as number).toLocaleString(); 
+                return formatCurrency(value as number); 
               },
             },
           },

@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { PieChart } from "lucide-react";
 import { Chart, registerables } from "chart.js";
+import { useCurrency } from "@/hooks/use-currency";
 import type { Transaction } from "@shared/schema";
 
 Chart.register(...registerables);
@@ -9,6 +10,7 @@ Chart.register(...registerables);
 export default function ExpenseCategoriesChart() {
   const chartRef = useRef<HTMLCanvasElement>(null);
   const chartInstance = useRef<Chart | null>(null);
+  const { formatCurrency } = useCurrency();
 
   const { data: transactions } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions"],
@@ -88,6 +90,15 @@ export default function ExpenseCategoriesChart() {
               padding: 15,
             },
           },
+          tooltip: {
+            callbacks: {
+              label: function(context: any) {
+                const label = context.label || '';
+                const value = context.parsed;
+                return `${label}: ${formatCurrency(value)}`;
+              }
+            }
+          }
         },
       },
     });

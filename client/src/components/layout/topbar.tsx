@@ -1,4 +1,6 @@
-import { Search, Bell } from "lucide-react";
+import { Search, Bell, Settings } from "lucide-react";
+import { useState } from "react";
+import SettingsModal from "@/components/modals/settings-modal";
 
 interface TopBarProps {
   title: string;
@@ -7,6 +9,7 @@ interface TopBarProps {
 }
 
 export default function TopBar({ title, subtitle, onAddTransaction }: TopBarProps) {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-8 py-4 lg:py-6 border-b border-white/10 gap-4 flex-shrink-0">
       <div>
@@ -25,12 +28,25 @@ export default function TopBar({ title, subtitle, onAddTransaction }: TopBarProp
         </button>
         
         <button 
+          onClick={() => setIsSettingsOpen(true)}
+          className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10"
+          title="Settings"
+        >
+          <Settings className="w-5 h-5" strokeWidth={1.5} />
+        </button>
+        
+        <button 
           onClick={onAddTransaction}
           className="px-4 py-2 rounded-full bg-white text-sm font-medium text-black hover:bg-gray-200 font-geist"
         >
           Add Transaction
         </button>
       </div>
+      
+      <SettingsModal 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)} 
+      />
     </div>
   );
 }

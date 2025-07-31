@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Wallet, TrendingUp, TrendingDown, PiggyBank, ExternalLink, ArrowUp, ArrowDown, Car, Edit2 } from "lucide-react";
 import CashFlowChart from "@/components/charts/cash-flow-chart";
 import ExpenseCategoriesChart from "@/components/charts/expense-categories-chart";
+import { useCurrency } from "@/hooks/use-currency";
 import type { Transaction } from "@shared/schema";
 
 interface DashboardSummary {
@@ -32,17 +33,11 @@ export default function Overview({ onEditTransaction }: OverviewProps) {
   const { data: summary, isLoading } = useQuery<DashboardSummary>({
     queryKey: ["/api/dashboard/summary"],
   });
+  const { formatCurrency } = useCurrency();
 
   if (isLoading) {
     return <div className="p-8">Loading...</div>;
   }
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
