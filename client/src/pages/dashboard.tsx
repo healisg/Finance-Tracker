@@ -57,6 +57,7 @@ export default function Dashboard() {
   const [activeSection, setActiveSection] = useState<SectionType>('overview');
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const openEditModal = (transaction: Transaction) => {
     setEditTransaction(transaction);
@@ -92,12 +93,14 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#585662] p-4">
-      <div className="w-full max-w-[1440px] min-h-[600px] h-[min(900px,calc(100vh-2rem))] finance-gradient-bg rounded-lg overflow-hidden text-white">
-        <div className="flex h-full flex-col lg:flex-row">
+    <div className="min-h-screen flex items-center justify-center bg-[#585662] p-2 sm:p-4">
+      <div className="w-full max-w-[1440px] min-h-[600px] h-[min(900px,calc(100vh-1rem))] sm:h-[min(900px,calc(100vh-2rem))] finance-gradient-bg rounded-lg overflow-hidden text-white">
+        <div className="flex h-full flex-col lg:flex-row pb-16 lg:pb-0">
           <Sidebar 
             activeSection={activeSection} 
-            onSectionChange={setActiveSection} 
+            onSectionChange={setActiveSection}
+            isMobileMenuOpen={isMobileMenuOpen}
+            setIsMobileMenuOpen={setIsMobileMenuOpen}
           />
           
           <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
@@ -105,6 +108,7 @@ export default function Dashboard() {
               title={sectionData[activeSection].title}
               subtitle={sectionData[activeSection].subtitle}
               onAddTransaction={() => setIsTransactionModalOpen(true)}
+              onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             />
             
             <div className="flex-1 overflow-y-auto">

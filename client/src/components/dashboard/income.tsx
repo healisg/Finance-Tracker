@@ -175,33 +175,33 @@ export default function Income() {
   );
 
   return (
-    <div className="px-4 sm:px-8 py-4 lg:py-6">
+    <div className="px-3 sm:px-4 lg:px-8 py-3 sm:py-4 lg:py-6">
       {/* Income Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6">
-        <div className="glass-card p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <Banknote className="w-5 h-5 text-green-400" strokeWidth={1.5} />
-            <span className="text-sm font-medium font-geist">This Month</span>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6">
+        <div className="glass-card p-3 sm:p-4 lg:p-5">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+            <Banknote className="w-4 sm:w-5 h-4 sm:h-5 text-green-400" strokeWidth={1.5} />
+            <span className="text-xs sm:text-sm font-medium font-geist">This Month</span>
           </div>
-          <div className="text-2xl font-jakarta font-medium mb-1">{formatCurrency(thisMonthIncome)}</div>
+          <div className="text-xl sm:text-2xl font-jakarta font-medium mb-1">{formatCurrency(thisMonthIncome)}</div>
           <span className="text-xs text-green-400 font-geist">+5.2% from last month</span>
         </div>
         
-        <div className="glass-card p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <Calendar className="w-5 h-5 text-blue-400" strokeWidth={1.5} />
-            <span className="text-sm font-medium font-geist">This Year</span>
+        <div className="glass-card p-3 sm:p-4 lg:p-5">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+            <Calendar className="w-4 sm:w-5 h-4 sm:h-5 text-blue-400" strokeWidth={1.5} />
+            <span className="text-xs sm:text-sm font-medium font-geist">This Year</span>
           </div>
-          <div className="text-2xl font-jakarta font-medium mb-1">{formatCurrency(thisYearIncome)}</div>
+          <div className="text-xl sm:text-2xl font-jakarta font-medium mb-1">{formatCurrency(thisYearIncome)}</div>
           <span className="text-xs text-blue-400 font-geist">+12.3% from last year</span>
         </div>
         
-        <div className="glass-card p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <Target className="w-5 h-5 text-purple-400" strokeWidth={1.5} />
-            <span className="text-sm font-medium font-geist">Target</span>
+        <div className="glass-card p-3 sm:p-4 lg:p-5 sm:col-span-2 lg:col-span-1">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+            <Target className="w-4 sm:w-5 h-4 sm:h-5 text-purple-400" strokeWidth={1.5} />
+            <span className="text-xs sm:text-sm font-medium font-geist">Target</span>
           </div>
-          <div className="text-2xl font-jakarta font-medium mb-1">{formatCurrency(7000)}</div>
+          <div className="text-xl sm:text-2xl font-jakarta font-medium mb-1">{formatCurrency(7000)}</div>
           <span className="text-xs text-purple-400 font-geist">
             {((thisMonthIncome / 7000) * 100).toFixed(1)}% achieved
           </span>
@@ -209,8 +209,8 @@ export default function Income() {
       </div>
 
       {/* Income Sources */}
-      <div className="glass-card p-5 mb-6">
-        <h3 className="text-lg font-jakarta font-medium mb-4">Income Sources</h3>
+      <div className="glass-card p-3 sm:p-4 lg:p-5 mb-4 sm:mb-6">
+        <h3 className="text-base sm:text-lg font-jakarta font-medium mb-3 sm:mb-4">Income Sources</h3>
         <div className="space-y-4">
           {Object.entries(incomeByCategory).length > 0 ? (
             Object.entries(incomeByCategory).map(([category, amount]) => (
@@ -287,9 +287,9 @@ export default function Income() {
           </p>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Fundamentals */}
-          <div className="glass-card p-6 metric-card-gradient-red">
+          <div className="glass-card p-4 sm:p-5 lg:p-6 metric-card-gradient-red">
             <div 
               className="flex items-center justify-between cursor-pointer"
               onClick={() => toggleGroup('fundamentals')}
@@ -337,7 +337,7 @@ export default function Income() {
           </div>
 
           {/* Fun */}
-          <div className="glass-card p-6 metric-card-gradient-purple">
+          <div className="glass-card p-4 sm:p-5 lg:p-6 metric-card-gradient-purple">
             <div 
               className="flex items-center justify-between cursor-pointer"
               onClick={() => toggleGroup('fun')}
@@ -375,7 +375,7 @@ export default function Income() {
           </div>
 
           {/* Future You */}
-          <div className="glass-card p-6 metric-card-gradient-green">
+          <div className="glass-card p-4 sm:p-5 lg:p-6 metric-card-gradient-green">
             <div 
               className="flex items-center justify-between cursor-pointer"
               onClick={() => toggleGroup('futureYou')}
