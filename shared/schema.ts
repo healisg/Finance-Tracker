@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { sql, relations } from "drizzle-orm";
 import { pgTable, text, varchar, decimal, timestamp, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -79,6 +79,58 @@ export const financialGoals = pgTable("financial_goals", {
   priority: text("priority").default("medium"), // 'low', 'medium', 'high'
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  transactions: many(transactions),
+  savingsPots: many(savingsPots),
+  debts: many(debts),
+  investments: many(investments),
+  budgets: many(budgets),
+  financialGoals: many(financialGoals),
+}));
+
+export const transactionsRelations = relations(transactions, ({ one }) => ({
+  user: one(users, {
+    fields: [transactions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const savingsPotsRelations = relations(savingsPots, ({ one }) => ({
+  user: one(users, {
+    fields: [savingsPots.userId],
+    references: [users.id],
+  }),
+}));
+
+export const debtsRelations = relations(debts, ({ one }) => ({
+  user: one(users, {
+    fields: [debts.userId],
+    references: [users.id],
+  }),
+}));
+
+export const investmentsRelations = relations(investments, ({ one }) => ({
+  user: one(users, {
+    fields: [investments.userId],
+    references: [users.id],
+  }),
+}));
+
+export const budgetsRelations = relations(budgets, ({ one }) => ({
+  user: one(users, {
+    fields: [budgets.userId],
+    references: [users.id],
+  }),
+}));
+
+export const financialGoalsRelations = relations(financialGoals, ({ one }) => ({
+  user: one(users, {
+    fields: [financialGoals.userId],
+    references: [users.id],
+  }),
+}));
 
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({

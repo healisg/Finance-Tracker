@@ -28,10 +28,12 @@ Preferred communication style: Simple, everyday language.
 - **Development**: Hot module replacement and development middleware integration
 
 ## Data Storage Solutions
-- **Primary Database**: PostgreSQL for reliable ACID transactions and complex financial queries
+- **Primary Database**: PostgreSQL with persistent storage for reliable ACID transactions and complex financial queries
 - **ORM**: Drizzle ORM with schema-first approach and automatic TypeScript type generation
 - **Migrations**: Drizzle Kit for database schema management and version control
 - **Connection**: Neon serverless PostgreSQL for scalable cloud database hosting
+- **Storage Implementation**: DatabaseStorage class with full CRUD operations for all financial entities
+- **Default User**: Automatically created default user (alex.johnson) for immediate testing and development
 
 ## Authentication and Authorization
 - **Session Management**: Express sessions with PostgreSQL session store using connect-pg-simple

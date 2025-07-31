@@ -1,4 +1,5 @@
 import { 
+  users, transactions, savingsPots, debts, investments, budgets, financialGoals,
   type User, type InsertUser, 
   type Transaction, type InsertTransaction,
   type SavingsPot, type InsertSavingsPot,
@@ -7,7 +8,8 @@ import {
   type Budget, type InsertBudget,
   type FinancialGoal, type InsertFinancialGoal
 } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { db } from "./db";
+import { eq, and } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -58,285 +60,250 @@ export interface IStorage {
   deleteFinancialGoal(id: string): Promise<boolean>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-  private transactions: Map<string, Transaction>;
-  private savingsPots: Map<string, SavingsPot>;
-  private debts: Map<string, Debt>;
-  private investments: Map<string, Investment>;
-  private budgets: Map<string, Budget>;
-  private financialGoals: Map<string, FinancialGoal>;
-
+export class DatabaseStorage implements IStorage {
   constructor() {
-    this.users = new Map();
-    this.transactions = new Map();
-    this.savingsPots = new Map();
-    this.debts = new Map();
-    this.investments = new Map();
-    this.budgets = new Map();
-    this.financialGoals = new Map();
-    
-    // Initialize with default user
     this.initializeDefaultData();
   }
 
   private async initializeDefaultData() {
-    const defaultUser: User = {
-      id: "default-user",
-      username: "alex.johnson",
-      password: "hashed_password",
-      name: "Alex Johnson",
-      avatar: "https://i.pravatar.cc/40?img=5"
-    };
-    this.users.set(defaultUser.id, defaultUser);
+    try {
+      // Check if default user exists
+      const existingUser = await db.select().from(users).where(eq(users.id, "default-user")).limit(1);
+      if (existingUser.length === 0) {
+        // Create default user
+        await db.insert(users).values({
+          id: "default-user",
+          username: "alex.johnson",
+          password: "hashed_password",
+          name: "Alex Johnson",
+          avatar: "https://i.pravatar.cc/40?img=5"
+        });
+      }
+    } catch (error) {
+      console.error("Failed to initialize default data:", error);
+    }
   }
 
   // User methods
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.username === username);
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { 
-      ...insertUser, 
-      id,
-      avatar: insertUser.avatar ?? null
-    };
-    this.users.set(id, user);
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
     return user;
   }
 
   // Transaction methods
   async getTransactions(userId: string): Promise<Transaction[]> {
-    return Array.from(this.transactions.values())
-      .filter(transaction => transaction.userId === userId)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return await db.select().from(transactions)
+      .where(eq(transactions.userId, userId))
+      .orderBy(transactions.date);
   }
 
   async getTransactionById(id: string): Promise<Transaction | undefined> {
-    return this.transactions.get(id);
+    const [transaction] = await db.select().from(transactions).where(eq(transactions.id, id));
+    return transaction || undefined;
   }
 
   async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
-    const id = randomUUID();
-    const newTransaction: Transaction = {
-      ...transaction,
-      id,
-      createdAt: new Date()
-    };
-    this.transactions.set(id, newTransaction);
+    const [newTransaction] = await db
+      .insert(transactions)
+      .values(transaction)
+      .returning();
     return newTransaction;
   }
 
   async updateTransaction(id: string, transaction: Partial<InsertTransaction>): Promise<Transaction | undefined> {
-    const existing = this.transactions.get(id);
-    if (!existing) return undefined;
-    
-    const updated = { ...existing, ...transaction };
-    this.transactions.set(id, updated);
-    return updated;
+    const [updated] = await db
+      .update(transactions)
+      .set(transaction)
+      .where(eq(transactions.id, id))
+      .returning();
+    return updated || undefined;
   }
 
   async deleteTransaction(id: string): Promise<boolean> {
-    return this.transactions.delete(id);
+    const result = await db.delete(transactions).where(eq(transactions.id, id));
+    return result.rowCount > 0;
   }
 
   // Savings Pot methods
   async getSavingsPots(userId: string): Promise<SavingsPot[]> {
-    return Array.from(this.savingsPots.values())
-      .filter(pot => pot.userId === userId);
+    return await db.select().from(savingsPots).where(eq(savingsPots.userId, userId));
   }
 
   async getSavingsPotById(id: string): Promise<SavingsPot | undefined> {
-    return this.savingsPots.get(id);
+    const [pot] = await db.select().from(savingsPots).where(eq(savingsPots.id, id));
+    return pot || undefined;
   }
 
   async createSavingsPot(pot: InsertSavingsPot): Promise<SavingsPot> {
-    const id = randomUUID();
-    const newPot: SavingsPot = {
-      ...pot,
-      id,
-      createdAt: new Date(),
-      currentAmount: pot.currentAmount ?? "0",
-      icon: pot.icon ?? "piggy-bank",
-      color: pot.color ?? "green"
-    };
-    this.savingsPots.set(id, newPot);
+    const [newPot] = await db
+      .insert(savingsPots)
+      .values(pot)
+      .returning();
     return newPot;
   }
 
   async updateSavingsPot(id: string, pot: Partial<InsertSavingsPot>): Promise<SavingsPot | undefined> {
-    const existing = this.savingsPots.get(id);
-    if (!existing) return undefined;
-    
-    const updated = { ...existing, ...pot };
-    this.savingsPots.set(id, updated);
-    return updated;
+    const [updated] = await db
+      .update(savingsPots)
+      .set(pot)
+      .where(eq(savingsPots.id, id))
+      .returning();
+    return updated || undefined;
   }
 
   async deleteSavingsPot(id: string): Promise<boolean> {
-    return this.savingsPots.delete(id);
+    const result = await db.delete(savingsPots).where(eq(savingsPots.id, id));
+    return result.rowCount > 0;
   }
 
   // Debt methods
   async getDebts(userId: string): Promise<Debt[]> {
-    return Array.from(this.debts.values())
-      .filter(debt => debt.userId === userId);
+    return await db.select().from(debts).where(eq(debts.userId, userId));
   }
 
   async getDebtById(id: string): Promise<Debt | undefined> {
-    return this.debts.get(id);
+    const [debt] = await db.select().from(debts).where(eq(debts.id, id));
+    return debt || undefined;
   }
 
   async createDebt(debt: InsertDebt): Promise<Debt> {
-    const id = randomUUID();
-    const newDebt: Debt = {
-      ...debt,
-      id,
-      createdAt: new Date(),
-      interestRate: debt.interestRate ?? null,
-      minimumPayment: debt.minimumPayment ?? null,
-      dueDate: debt.dueDate ?? null
-    };
-    this.debts.set(id, newDebt);
+    const [newDebt] = await db
+      .insert(debts)
+      .values(debt)
+      .returning();
     return newDebt;
   }
 
   async updateDebt(id: string, debt: Partial<InsertDebt>): Promise<Debt | undefined> {
-    const existing = this.debts.get(id);
-    if (!existing) return undefined;
-    
-    const updated = { ...existing, ...debt };
-    this.debts.set(id, updated);
-    return updated;
+    const [updated] = await db
+      .update(debts)
+      .set(debt)
+      .where(eq(debts.id, id))
+      .returning();
+    return updated || undefined;
   }
 
   async deleteDebt(id: string): Promise<boolean> {
-    return this.debts.delete(id);
+    const result = await db.delete(debts).where(eq(debts.id, id));
+    return result.rowCount > 0;
   }
 
   // Investment methods
   async getInvestments(userId: string): Promise<Investment[]> {
-    return Array.from(this.investments.values())
-      .filter(investment => investment.userId === userId);
+    return await db.select().from(investments).where(eq(investments.userId, userId));
   }
 
   async getInvestmentById(id: string): Promise<Investment | undefined> {
-    return this.investments.get(id);
+    const [investment] = await db.select().from(investments).where(eq(investments.id, id));
+    return investment || undefined;
   }
 
   async createInvestment(investment: InsertInvestment): Promise<Investment> {
-    const id = randomUUID();
-    const newInvestment: Investment = {
-      ...investment,
-      id,
-      createdAt: new Date(),
-      quantity: investment.quantity ?? null,
-      symbol: investment.symbol ?? null
-    };
-    this.investments.set(id, newInvestment);
+    const [newInvestment] = await db
+      .insert(investments)
+      .values(investment)
+      .returning();
     return newInvestment;
   }
 
   async updateInvestment(id: string, investment: Partial<InsertInvestment>): Promise<Investment | undefined> {
-    const existing = this.investments.get(id);
-    if (!existing) return undefined;
-    
-    const updated = { ...existing, ...investment };
-    this.investments.set(id, updated);
-    return updated;
+    const [updated] = await db
+      .update(investments)
+      .set(investment)
+      .where(eq(investments.id, id))
+      .returning();
+    return updated || undefined;
   }
 
   async deleteInvestment(id: string): Promise<boolean> {
-    return this.investments.delete(id);
+    const result = await db.delete(investments).where(eq(investments.id, id));
+    return result.rowCount > 0;
   }
 
   // Budget methods
   async getBudgets(userId: string, month?: number, year?: number): Promise<Budget[]> {
-    let budgets = Array.from(this.budgets.values())
-      .filter(budget => budget.userId === userId);
-    
-    if (month !== undefined) {
-      budgets = budgets.filter(budget => budget.month === month);
+    if (month && year) {
+      return await db.select().from(budgets)
+        .where(and(
+          eq(budgets.userId, userId),
+          eq(budgets.month, month),
+          eq(budgets.year, year)
+        ));
     }
-    
-    if (year !== undefined) {
-      budgets = budgets.filter(budget => budget.year === year);
-    }
-    
-    return budgets;
+    return await db.select().from(budgets).where(eq(budgets.userId, userId));
   }
 
   async getBudgetById(id: string): Promise<Budget | undefined> {
-    return this.budgets.get(id);
+    const [budget] = await db.select().from(budgets).where(eq(budgets.id, id));
+    return budget || undefined;
   }
 
   async createBudget(budget: InsertBudget): Promise<Budget> {
-    const id = randomUUID();
-    const newBudget: Budget = {
-      ...budget,
-      id,
-      createdAt: new Date(),
-      spentAmount: budget.spentAmount ?? "0"
-    };
-    this.budgets.set(id, newBudget);
+    const [newBudget] = await db
+      .insert(budgets)
+      .values(budget)
+      .returning();
     return newBudget;
   }
 
   async updateBudget(id: string, budget: Partial<InsertBudget>): Promise<Budget | undefined> {
-    const existing = this.budgets.get(id);
-    if (!existing) return undefined;
-    
-    const updated = { ...existing, ...budget };
-    this.budgets.set(id, updated);
-    return updated;
+    const [updated] = await db
+      .update(budgets)
+      .set(budget)
+      .where(eq(budgets.id, id))
+      .returning();
+    return updated || undefined;
   }
 
   async deleteBudget(id: string): Promise<boolean> {
-    return this.budgets.delete(id);
+    const result = await db.delete(budgets).where(eq(budgets.id, id));
+    return result.rowCount > 0;
   }
 
   // Financial Goal methods
   async getFinancialGoals(userId: string): Promise<FinancialGoal[]> {
-    return Array.from(this.financialGoals.values())
-      .filter(goal => goal.userId === userId);
+    return await db.select().from(financialGoals).where(eq(financialGoals.userId, userId));
   }
 
   async getFinancialGoalById(id: string): Promise<FinancialGoal | undefined> {
-    return this.financialGoals.get(id);
+    const [goal] = await db.select().from(financialGoals).where(eq(financialGoals.id, id));
+    return goal || undefined;
   }
 
   async createFinancialGoal(goal: InsertFinancialGoal): Promise<FinancialGoal> {
-    const id = randomUUID();
-    const newGoal: FinancialGoal = {
-      ...goal,
-      id,
-      createdAt: new Date(),
-      currentAmount: goal.currentAmount ?? "0",
-      targetDate: goal.targetDate ?? null,
-      priority: goal.priority ?? "medium"
-    };
-    this.financialGoals.set(id, newGoal);
+    const [newGoal] = await db
+      .insert(financialGoals)
+      .values(goal)
+      .returning();
     return newGoal;
   }
 
   async updateFinancialGoal(id: string, goal: Partial<InsertFinancialGoal>): Promise<FinancialGoal | undefined> {
-    const existing = this.financialGoals.get(id);
-    if (!existing) return undefined;
-    
-    const updated = { ...existing, ...goal };
-    this.financialGoals.set(id, updated);
-    return updated;
+    const [updated] = await db
+      .update(financialGoals)
+      .set(goal)
+      .where(eq(financialGoals.id, id))
+      .returning();
+    return updated || undefined;
   }
 
   async deleteFinancialGoal(id: string): Promise<boolean> {
-    return this.financialGoals.delete(id);
+    const result = await db.delete(financialGoals).where(eq(financialGoals.id, id));
+    return result.rowCount > 0;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
