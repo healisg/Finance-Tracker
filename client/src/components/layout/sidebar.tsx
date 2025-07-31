@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Wallet, Home, TrendingUp, TrendingDown, PiggyBank, CreditCard, BarChart3, Target, ChevronDown, Settings } from "lucide-react";
+import { Wallet, Home, TrendingUp, TrendingDown, PiggyBank, CreditCard, BarChart3, Target, ChevronDown, Settings, Heart } from "lucide-react";
+import { Link, useLocation } from "wouter";
 import type { SectionType } from "@/pages/dashboard";
 
 interface SidebarProps {
@@ -9,6 +10,7 @@ interface SidebarProps {
 
 export default function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
   const [isBudgetExpanded, setIsBudgetExpanded] = useState(false);
+  const [location] = useLocation();
 
   const navItems = [
     { id: 'overview' as SectionType, icon: Home, label: 'Overview' },
@@ -50,6 +52,14 @@ export default function Sidebar({ activeSection, onSectionChange }: SidebarProps
             </button>
           );
         })}
+
+        {/* Expense Groups - Direct link to expenses page */}
+        <Link href="/expenses">
+          <button className={`nav-item ${location === '/expenses' ? 'nav-item-active' : ''}`}>
+            <Heart className="w-5 h-5" strokeWidth={1.5} />
+            <span className="text-sm font-medium font-geist">Expense Groups</span>
+          </button>
+        </Link>
 
         {/* Budget collapsible */}
         <div>
