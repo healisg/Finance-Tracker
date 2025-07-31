@@ -1,8 +1,33 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Banknote, Calendar, Target, Briefcase, Laptop, TrendingUp } from "lucide-react";
+import { Banknote, Calendar, Target, Briefcase, Laptop, TrendingUp, Heart, Gamepad2, ChevronDown, ChevronUp, Tag, Users, User } from "lucide-react";
+import { useCurrency } from "@/hooks/use-currency";
 import type { Transaction } from "@shared/schema";
 
+interface ExpenseGroupData {
+  fundamentals: {
+    shared: Transaction[];
+    individual: Transaction[];
+    total: number;
+  };
+  fun: {
+    transactions: Transaction[];
+    total: number;
+  };
+  futureYou: {
+    transactions: Transaction[];
+    total: number;
+  };
+}
+
 export default function Income() {
+  const { formatCurrency } = useCurrency();
+  const [expandedGroups, setExpandedGroups] = useState<{[key: string]: boolean}>({
+    fundamentals: false,
+    fun: false,
+    futureYou: false
+  });
+  
   const { data: transactions, isLoading } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions"],
   });
@@ -28,11 +53,63 @@ export default function Income() {
     .filter((t: any) => new Date(t.date).getFullYear() === currentYear)
     .reduce((sum: number, t: any) => sum + parseFloat(t.amount), 0);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
+  // Process transactions into expense groups
+  const expenseGroups: ExpenseGroupData = {
+    fundamentals: { shared: [], individual: [], total: 0 },
+    fun: { transactions: [], total: 0 },
+    futureYou: { transactions: [], total: 0 }
+  };
+
+  if (transactions) {
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+
+    transactions.forEach(transaction => {
+      if (transaction.type === 'expense') {
+        const transactionDate = new Date(transaction.date);
+        const isCurrentMonth = transactionDate.getMonth() === currentMonth && 
+                               transactionDate.getFullYear() === currentYear;
+        
+        if (isCurrentMonth) {
+          const amount = parseFloat(transaction.amount);
+
+          switch (transaction.expenseGroup) {
+            case 'fundamentals':
+              expenseGroups.fundamentals.total += amount;
+              if (transaction.isSharedExpense) {
+                expenseGroups.fundamentals.shared.push(transaction);
+              } else {
+                expenseGroups.fundamentals.individual.push(transaction);
+              }
+              break;
+            case 'fun':
+              expenseGroups.fun.total += amount;
+              expenseGroups.fun.transactions.push(transaction);
+              break;
+            case 'future-you':
+              expenseGroups.futureYou.total += amount;
+              expenseGroups.futureYou.transactions.push(transaction);
+              break;
+          }
+        }
+      }
+    });
+  }
+
+  const toggleGroup = (groupName: string) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [groupName]: !prev[groupName]
+    }));
+  };
+
+  const formatTransactionDate = (date: Date | string) => {
+    const d = new Date(date);
+    return d.toLocaleDateString('en-GB', { 
+      day: 'numeric', 
+      month: 'short',
+      year: 'numeric'
+    });
   };
 
   // Group income by category
@@ -56,6 +133,46 @@ export default function Income() {
         return <Banknote className="w-5 h-5 text-green-400" strokeWidth={1.5} />;
     }
   };
+
+  const TransactionList = ({ transactions, type }: { transactions: Transaction[], type?: 'shared' | 'individual' }) => (
+    <div className="space-y-2 mt-3">
+      {type && (
+        <div className="text-xs font-medium text-white/80 uppercase tracking-wide flex items-center gap-1 mb-2">
+          {type === 'shared' ? <Users className="w-3 h-3" /> : <User className="w-3 h-3" />}
+          {type === 'shared' ? 'Shared Expenses' : 'Individual Expenses'}
+        </div>
+      )}
+      {transactions.map(transaction => (
+        <div key={transaction.id} className="bg-white/5 rounded-lg p-3 border border-white/10">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-sm font-medium text-white">{transaction.description}</span>
+                <div className="flex items-center gap-1 text-xs text-white/60">
+                  <Tag className="w-3 h-3" />
+                  <span>{transaction.category}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-white/60">
+                <Calendar className="w-3 h-3" />
+                <span>{formatTransactionDate(transaction.date)}</span>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-sm font-medium text-red-400">
+                -{formatCurrency(parseFloat(transaction.amount))}
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+      {transactions.length === 0 && (
+        <div className="text-center py-4 text-white/40 text-sm">
+          No {type || ''} transactions this month
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="px-4 sm:px-8 py-4 lg:py-6">
@@ -158,6 +275,142 @@ export default function Income() {
               <p className="text-xs mt-1 font-geist">Add your first income to get started</p>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Expense Groups Section */}
+      <div className="mt-8">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-white mb-2 font-jakarta">Monthly Expense Groups</h2>
+          <p className="text-white/60 font-geist">
+            Detailed breakdown of your expenses by category for financial review
+          </p>
+        </div>
+
+        <div className="space-y-6">
+          {/* Fundamentals */}
+          <div className="glass-card p-6 metric-card-gradient-red">
+            <div 
+              className="flex items-center justify-between cursor-pointer"
+              onClick={() => toggleGroup('fundamentals')}
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-red-600/20 rounded-lg flex items-center justify-center">
+                  <Heart className="w-6 h-6 text-red-400" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-medium font-geist">Fundamentals</h3>
+                  <p className="text-sm text-white/60 font-geist">Essential household expenses and bills</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <div className="text-2xl font-jakarta font-medium">
+                    {formatCurrency(expenseGroups.fundamentals.total)}
+                  </div>
+                  <div className="text-sm text-white/60">
+                    {expenseGroups.fundamentals.shared.length + expenseGroups.fundamentals.individual.length} transactions
+                  </div>
+                </div>
+                {expandedGroups.fundamentals ? 
+                  <ChevronUp className="w-5 h-5 text-white/60" /> : 
+                  <ChevronDown className="w-5 h-5 text-white/60" />
+                }
+              </div>
+            </div>
+
+            {expandedGroups.fundamentals && (
+              <div className="mt-6 space-y-4">
+                {expenseGroups.fundamentals.shared.length > 0 && (
+                  <TransactionList transactions={expenseGroups.fundamentals.shared} type="shared" />
+                )}
+                {expenseGroups.fundamentals.individual.length > 0 && (
+                  <TransactionList transactions={expenseGroups.fundamentals.individual} type="individual" />
+                )}
+                {expenseGroups.fundamentals.shared.length === 0 && expenseGroups.fundamentals.individual.length === 0 && (
+                  <div className="text-center py-8 text-white/40">
+                    No fundamental expenses recorded this month
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Fun */}
+          <div className="glass-card p-6 metric-card-gradient-purple">
+            <div 
+              className="flex items-center justify-between cursor-pointer"
+              onClick={() => toggleGroup('fun')}
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-purple-600/20 rounded-lg flex items-center justify-center">
+                  <Gamepad2 className="w-6 h-6 text-purple-400" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-medium font-geist">Fun</h3>
+                  <p className="text-sm text-white/60 font-geist">Entertainment and discretionary spending</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <div className="text-2xl font-jakarta font-medium">
+                    {formatCurrency(expenseGroups.fun.total)}
+                  </div>
+                  <div className="text-sm text-white/60">
+                    {expenseGroups.fun.transactions.length} transactions
+                  </div>
+                </div>
+                {expandedGroups.fun ? 
+                  <ChevronUp className="w-5 h-5 text-white/60" /> : 
+                  <ChevronDown className="w-5 h-5 text-white/60" />
+                }
+              </div>
+            </div>
+
+            {expandedGroups.fun && (
+              <div className="mt-6">
+                <TransactionList transactions={expenseGroups.fun.transactions} />
+              </div>
+            )}
+          </div>
+
+          {/* Future You */}
+          <div className="glass-card p-6 metric-card-gradient-green">
+            <div 
+              className="flex items-center justify-between cursor-pointer"
+              onClick={() => toggleGroup('futureYou')}
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-green-600/20 rounded-lg flex items-center justify-center">
+                  <Target className="w-6 h-6 text-green-400" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-medium font-geist">Future You</h3>
+                  <p className="text-sm text-white/60 font-geist">Investments and savings for future goals</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <div className="text-2xl font-jakarta font-medium">
+                    {formatCurrency(expenseGroups.futureYou.total)}
+                  </div>
+                  <div className="text-sm text-white/60">
+                    {expenseGroups.futureYou.transactions.length} transactions
+                  </div>
+                </div>
+                {expandedGroups.futureYou ? 
+                  <ChevronUp className="w-5 h-5 text-white/60" /> : 
+                  <ChevronDown className="w-5 h-5 text-white/60" />
+                }
+              </div>
+            </div>
+
+            {expandedGroups.futureYou && (
+              <div className="mt-6">
+                <TransactionList transactions={expenseGroups.futureYou.transactions} />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

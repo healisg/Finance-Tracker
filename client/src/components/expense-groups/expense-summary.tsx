@@ -94,7 +94,7 @@ export default function ExpenseSummary() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Fundamentals Card */}
         <div className="glass-card p-5 metric-card-gradient-red cursor-pointer hover:scale-105 transition-transform duration-200" 
-             onClick={() => window.location.href = '/expenses'}>
+             onClick={() => window.location.href = '/?section=income'}>
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-red-600/20 rounded-lg flex items-center justify-center">
               <Heart className="w-5 h-5 text-red-400" strokeWidth={1.5} />
@@ -137,7 +137,7 @@ export default function ExpenseSummary() {
 
         {/* Fun Card */}
         <div className="glass-card p-5 metric-card-gradient-purple cursor-pointer hover:scale-105 transition-transform duration-200" 
-             onClick={() => window.location.href = '/expenses'}>
+             onClick={() => window.location.href = '/?section=income'}>
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-purple-600/20 rounded-lg flex items-center justify-center">
               <Gamepad2 className="w-5 h-5 text-purple-400" strokeWidth={1.5} />
@@ -155,7 +155,7 @@ export default function ExpenseSummary() {
 
         {/* Future You Card */}
         <div className="glass-card p-5 metric-card-gradient-green cursor-pointer hover:scale-105 transition-transform duration-200" 
-             onClick={() => window.location.href = '/expenses'}>
+             onClick={() => window.location.href = '/?section=income'}>
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-green-600/20 rounded-lg flex items-center justify-center">
               <Target className="w-5 h-5 text-green-400" strokeWidth={1.5} />

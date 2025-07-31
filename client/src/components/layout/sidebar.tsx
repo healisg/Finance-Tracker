@@ -53,13 +53,7 @@ export default function Sidebar({ activeSection, onSectionChange }: SidebarProps
           );
         })}
 
-        {/* Expense Groups - Direct link to expenses page */}
-        <Link href="/expenses">
-          <button className={`nav-item ${location === '/expenses' ? 'nav-item-active' : ''}`}>
-            <Heart className="w-5 h-5" strokeWidth={1.5} />
-            <span className="text-sm font-medium font-geist">Expense Groups</span>
-          </button>
-        </Link>
+
 
         {/* Budget collapsible */}
         <div>
