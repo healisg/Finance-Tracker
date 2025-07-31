@@ -9,6 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,6 +19,7 @@ const transactionSchema = z.object({
   category: z.string().min(1, "Category is required"),
   description: z.string().min(1, "Description is required"),
   date: z.string().min(1, "Date is required"),
+  splitBill: z.boolean().optional(),
 });
 
 type TransactionFormData = z.infer<typeof transactionSchema>;
@@ -39,14 +41,26 @@ export default function TransactionModal({ isOpen, onClose }: TransactionModalPr
       category: '',
       description: '',
       date: new Date().toISOString().split('T')[0],
+      splitBill: false,
     },
   });
 
   const createTransactionMutation = useMutation({
     mutationFn: async (data: TransactionFormData) => {
+      // Calculate the final amount - split in half if splitBill is enabled
+      const finalAmount = data.splitBill && data.type === 'expense' 
+        ? (parseFloat(data.amount) / 2).toString()
+        : data.amount;
+      
+      // Update description to indicate it's a split bill
+      const finalDescription = data.splitBill && data.type === 'expense'
+        ? `${data.description} (Split bill - your share: $${finalAmount})`
+        : data.description;
+
       const response = await apiRequest('POST', '/api/transactions', {
         ...data,
-        amount: data.amount,
+        amount: finalAmount,
+        description: finalDescription,
       });
       return response.json();
     },
@@ -103,6 +117,8 @@ export default function TransactionModal({ isOpen, onClose }: TransactionModalPr
   if (!isOpen) return null;
 
   const selectedType = form.watch('type');
+  const splitBillEnabled = form.watch('splitBill');
+  const currentAmount = form.watch('amount');
 
   return (
     <>
@@ -155,7 +171,14 @@ export default function TransactionModal({ isOpen, onClose }: TransactionModalPr
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium font-geist">Amount</FormLabel>
+                    <FormLabel className="text-sm font-medium font-geist">
+                      Amount
+                      {splitBillEnabled && selectedType === 'expense' && currentAmount && (
+                        <span className="text-blue-400 ml-2">
+                          (Your share: ${(parseFloat(currentAmount || '0') / 2).toFixed(2)})
+                        </span>
+                      )}
+                    </FormLabel>
                     <FormControl>
                       <div className="relative">
                         <span className="absolute left-3 top-2 text-white/60">$</span>
@@ -163,7 +186,7 @@ export default function TransactionModal({ isOpen, onClose }: TransactionModalPr
                           {...field}
                           type="number"
                           step="0.01"
-                          placeholder="0.00"
+                          placeholder={splitBillEnabled && selectedType === 'expense' ? "Total bill amount" : "0.00"}
                           className="pl-8 bg-white/10 border-white/20 text-white"
                         />
                       </div>
@@ -172,6 +195,31 @@ export default function TransactionModal({ isOpen, onClose }: TransactionModalPr
                   </FormItem>
                 )}
               />
+
+              {selectedType === 'expense' && (
+                <FormField
+                  control={form.control}
+                  name="splitBill"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-white/20 p-3 bg-white/5">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-sm font-medium font-geist">
+                          Split Bill
+                        </FormLabel>
+                        <div className="text-xs text-white/60">
+                          Divide expense in half with spouse
+                        </div>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <FormField
                 control={form.control}
