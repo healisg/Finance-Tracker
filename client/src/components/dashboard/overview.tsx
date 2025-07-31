@@ -250,7 +250,14 @@ export default function Overview({ onEditTransaction }: OverviewProps) {
                     </span>
                     {onEditTransaction && (
                       <button
-                        onClick={() => onEditTransaction(transaction as Transaction)}
+                        onClick={() => onEditTransaction({
+                          ...transaction,
+                          date: new Date(transaction.date),
+                          expenseGroup: transaction.expenseGroup || null,
+                          isSharedExpense: transaction.isSharedExpense || null,
+                          userId: 'alex.johnson',
+                          createdAt: null
+                        } as Transaction)}
                         className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-white/10 rounded-md"
                         title="Edit transaction"
                       >

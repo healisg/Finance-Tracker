@@ -3,6 +3,18 @@ import { Heart, Gamepad2, Target, Users, User } from "lucide-react";
 import { useCurrency } from "@/hooks/use-currency";
 import type { Transaction } from "@shared/schema";
 
+// Define a simplified transaction interface for the dashboard summary
+interface RecentTransaction {
+  id: string;
+  type: string;
+  amount: string;
+  description: string;
+  date: string;
+  category: string;
+  expenseGroup?: string | null;
+  isSharedExpense?: boolean | null;
+}
+
 interface ExpenseGroupSummary {
   fundamentals: {
     shared: number;
@@ -67,6 +79,8 @@ export default function ExpenseSummary() {
       }
     });
   }
+
+
 
   return (
     <div className="space-y-4">
