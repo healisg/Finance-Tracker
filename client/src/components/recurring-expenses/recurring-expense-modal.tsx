@@ -150,16 +150,16 @@ export default function RecurringExpenseModal({ isOpen, onClose, expense }: Recu
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="glass-modal max-w-md w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-white font-geist">
+          <h2 className="text-xl font-semibold text-gray-900 font-geist">
             {expense ? "Edit Recurring Expense" : "Add Recurring Expense"}
           </h2>
           <Button
             onClick={onClose}
             variant="ghost"
             size="sm"
-            className="text-white/60 hover:text-white hover:bg-white/10"
+            className="text-gray-400 hover:text-gray-600 hover:bg-gray-100"
           >
             <X className="w-4 h-4" />
           </Button>
@@ -167,22 +167,22 @@ export default function RecurringExpenseModal({ isOpen, onClose, expense }: Recu
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <Label htmlFor="description" className="text-white/80 font-geist">
+            <Label htmlFor="description" className="text-gray-700 font-geist">
               Description
             </Label>
             <Input
               id="description"
               placeholder="e.g., Netflix Subscription, Rent, Groceries"
-              className="input-glass"
+              className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               {...form.register("description")}
             />
             {form.formState.errors.description && (
-              <p className="text-red-400 text-sm mt-1">{form.formState.errors.description.message}</p>
+              <p className="text-red-500 text-sm mt-1">{form.formState.errors.description.message}</p>
             )}
           </div>
 
           <div>
-            <Label htmlFor="amount" className="text-white/80 font-geist">
+            <Label htmlFor="amount" className="text-gray-700 font-geist">
               Amount (£)
             </Label>
             <Input
@@ -190,31 +190,31 @@ export default function RecurringExpenseModal({ isOpen, onClose, expense }: Recu
               type="number"
               step="0.01"
               placeholder="0.00"
-              className="input-glass"
+              className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               {...form.register("amount")}
             />
             {form.formState.errors.amount && (
-              <p className="text-red-400 text-sm mt-1">{form.formState.errors.amount.message}</p>
+              <p className="text-red-500 text-sm mt-1">{form.formState.errors.amount.message}</p>
             )}
           </div>
 
           <div>
-            <Label htmlFor="category" className="text-white/80 font-geist">
+            <Label htmlFor="category" className="text-gray-700 font-geist">
               Category
             </Label>
             <Input
               id="category"
               placeholder="e.g., Entertainment, Housing, Groceries"
-              className="input-glass"
+              className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               {...form.register("category")}
             />
             {form.formState.errors.category && (
-              <p className="text-red-400 text-sm mt-1">{form.formState.errors.category.message}</p>
+              <p className="text-red-500 text-sm mt-1">{form.formState.errors.category.message}</p>
             )}
           </div>
 
           <div>
-            <Label className="text-white/80 font-geist">Expense Group</Label>
+            <Label className="text-gray-700 font-geist">Expense Group</Label>
             <Select
               value={selectedExpenseGroup}
               onValueChange={(value) => {
@@ -222,7 +222,7 @@ export default function RecurringExpenseModal({ isOpen, onClose, expense }: Recu
                 form.setValue("expenseGroup", value as "fundamentals" | "fun" | "future-you");
               }}
             >
-              <SelectTrigger className="select-glass">
+              <SelectTrigger className="border-gray-300 focus:border-blue-500 focus:ring-blue-500">
                 <SelectValue placeholder="Select expense group" />
               </SelectTrigger>
               <SelectContent>
@@ -232,12 +232,12 @@ export default function RecurringExpenseModal({ isOpen, onClose, expense }: Recu
               </SelectContent>
             </Select>
             {form.formState.errors.expenseGroup && (
-              <p className="text-red-400 text-sm mt-1">{form.formState.errors.expenseGroup.message}</p>
+              <p className="text-red-500 text-sm mt-1">{form.formState.errors.expenseGroup.message}</p>
             )}
           </div>
 
           <div>
-            <Label htmlFor="dayOfMonth" className="text-white/80 font-geist">
+            <Label htmlFor="dayOfMonth" className="text-gray-700 font-geist">
               Day of Month (1-31)
             </Label>
             <Input
@@ -245,21 +245,21 @@ export default function RecurringExpenseModal({ isOpen, onClose, expense }: Recu
               type="number"
               min="1"
               max="31"
-              className="input-glass"
+              className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               {...form.register("dayOfMonth", { valueAsNumber: true })}
             />
-            <p className="text-xs text-white/60 mt-1 font-geist">
+            <p className="text-xs text-gray-500 mt-1 font-geist">
               The day of each month when this expense should be created
             </p>
             {form.formState.errors.dayOfMonth && (
-              <p className="text-red-400 text-sm mt-1">{form.formState.errors.dayOfMonth.message}</p>
+              <p className="text-red-500 text-sm mt-1">{form.formState.errors.dayOfMonth.message}</p>
             )}
           </div>
 
           <div className="flex items-center justify-between py-2">
             <div>
-              <Label className="text-white/80 font-geist">Shared Expense</Label>
-              <p className="text-xs text-white/60 font-geist">Split this expense with spouse</p>
+              <Label className="text-gray-700 font-geist">Shared Expense</Label>
+              <p className="text-xs text-gray-500 font-geist">Split this expense with spouse</p>
             </div>
             <Switch
               checked={form.watch("isSharedExpense")}
@@ -269,8 +269,8 @@ export default function RecurringExpenseModal({ isOpen, onClose, expense }: Recu
 
           <div className="flex items-center justify-between py-2">
             <div>
-              <Label className="text-white/80 font-geist">Active</Label>
-              <p className="text-xs text-white/60 font-geist">Generate transactions for this expense</p>
+              <Label className="text-gray-700 font-geist">Active</Label>
+              <p className="text-xs text-gray-500 font-geist">Generate transactions for this expense</p>
             </div>
             <Switch
               checked={form.watch("isActive")}
@@ -283,7 +283,7 @@ export default function RecurringExpenseModal({ isOpen, onClose, expense }: Recu
               type="button"
               variant="outline"
               onClick={onClose}
-              className="flex-1 border-white/20 text-white/80 hover:bg-white/10"
+              className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
               disabled={isPending}
             >
               Cancel
