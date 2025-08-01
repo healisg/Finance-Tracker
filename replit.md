@@ -1,6 +1,6 @@
 # Overview
 
-This is a comprehensive personal finance tracking application built with a modern full-stack architecture. The application allows users to manage their financial data including transactions, savings, debts, investments, budgets, and financial goals through an intuitive web interface with real-time data visualization.
+This is a comprehensive personal finance tracking application built with a modern full-stack architecture. The application allows users to manage their financial data including transactions, savings, debts, investments, budgets, financial goals, and recurring expenses through an intuitive web interface with real-time data visualization and automated transaction generation.
 
 # User Preferences
 
@@ -23,7 +23,7 @@ Preferred communication style: Simple, everyday language.
 - **Language**: TypeScript for end-to-end type safety
 - **API Design**: RESTful API with structured route handling
 - **Database**: PostgreSQL with Drizzle ORM for type-safe database operations
-- **Schema**: Comprehensive financial data models including users, transactions, savings pots, debts, investments, budgets, and financial goals
+- **Schema**: Comprehensive financial data models including users, transactions, savings pots, debts, investments, budgets, financial goals, and recurring expenses with automatic transaction generation
 - **Validation**: Zod schemas for runtime type validation across client and server
 - **Development**: Hot module replacement and development middleware integration
 
@@ -32,7 +32,8 @@ Preferred communication style: Simple, everyday language.
 - **ORM**: Drizzle ORM with schema-first approach and automatic TypeScript type generation
 - **Migrations**: Drizzle Kit for database schema management and version control
 - **Connection**: Neon serverless PostgreSQL for scalable cloud database hosting
-- **Storage Implementation**: DatabaseStorage class with full CRUD operations for all financial entities
+- **Storage Implementation**: DatabaseStorage class with full CRUD operations for all financial entities including recurring expenses
+- **Recurring Expenses**: Automated transaction generation system that creates monthly transactions from recurring expense templates
 - **Default User**: Automatically created default user (alex.johnson) for immediate testing and development
 
 ## Authentication and Authorization
