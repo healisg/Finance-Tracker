@@ -22,6 +22,7 @@ export const transactions = pgTable("transactions", {
   // New expense grouping fields
   expenseGroup: text("expense_group"), // 'fundamentals', 'fun', 'future-you'
   isSharedExpense: boolean("is_shared_expense").default(false), // true if split with spouse
+  recurringExpenseId: varchar("recurring_expense_id"), // reference to recurring expense if auto-generated
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -83,6 +84,21 @@ export const financialGoals = pgTable("financial_goals", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Recurring Expenses Table
+export const recurringExpenses = pgTable("recurring_expenses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  description: text("description").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  category: text("category").notNull(),
+  expenseGroup: text("expense_group").notNull(), // 'fundamentals', 'fun', 'future-you'
+  isSharedExpense: boolean("is_shared_expense").default(false),
+  dayOfMonth: integer("day_of_month").notNull().default(1), // 1-31, day of month to create transaction
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   transactions: many(transactions),
@@ -91,12 +107,17 @@ export const usersRelations = relations(users, ({ many }) => ({
   investments: many(investments),
   budgets: many(budgets),
   financialGoals: many(financialGoals),
+  recurringExpenses: many(recurringExpenses),
 }));
 
 export const transactionsRelations = relations(transactions, ({ one }) => ({
   user: one(users, {
     fields: [transactions.userId],
     references: [users.id],
+  }),
+  recurringExpense: one(recurringExpenses, {
+    fields: [transactions.recurringExpenseId],
+    references: [recurringExpenses.id],
   }),
 }));
 
@@ -135,6 +156,14 @@ export const financialGoalsRelations = relations(financialGoals, ({ one }) => ({
   }),
 }));
 
+export const recurringExpensesRelations = relations(recurringExpenses, ({ one, many }) => ({
+  user: one(users, {
+    fields: [recurringExpenses.userId],
+    references: [users.id],
+  }),
+  transactions: many(transactions),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -170,6 +199,12 @@ export const insertFinancialGoalSchema = createInsertSchema(financialGoals).omit
   createdAt: true,
 });
 
+export const insertRecurringExpenseSchema = createInsertSchema(recurringExpenses).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -185,6 +220,8 @@ export type Budget = typeof budgets.$inferSelect;
 export type InsertBudget = z.infer<typeof insertBudgetSchema>;
 export type FinancialGoal = typeof financialGoals.$inferSelect;
 export type InsertFinancialGoal = z.infer<typeof insertFinancialGoalSchema>;
+export type RecurringExpense = typeof recurringExpenses.$inferSelect;
+export type InsertRecurringExpense = z.infer<typeof insertRecurringExpenseSchema>;
 
 // Expense group constants
 export const EXPENSE_GROUPS = {

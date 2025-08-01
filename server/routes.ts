@@ -3,7 +3,8 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { 
   insertTransactionSchema, insertSavingsPotSchema, insertDebtSchema,
-  insertInvestmentSchema, insertBudgetSchema, insertFinancialGoalSchema 
+  insertInvestmentSchema, insertBudgetSchema, insertFinancialGoalSchema,
+  insertRecurringExpenseSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -288,6 +289,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch dashboard summary" });
+    }
+  });
+
+  // Recurring Expense routes
+  app.get("/api/recurring-expenses", async (req, res) => {
+    try {
+      const expenses = await storage.getRecurringExpenses(DEFAULT_USER_ID);
+      res.json(expenses);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch recurring expenses" });
+    }
+  });
+
+  app.post("/api/recurring-expenses", async (req, res) => {
+    try {
+      const validatedData = insertRecurringExpenseSchema.parse({
+        ...req.body,
+        userId: DEFAULT_USER_ID
+      });
+      const expense = await storage.createRecurringExpense(validatedData);
+      res.json(expense);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid recurring expense data", error });
+    }
+  });
+
+  app.get("/api/recurring-expenses/:id", async (req, res) => {
+    try {
+      const expense = await storage.getRecurringExpenseById(req.params.id);
+      if (!expense) {
+        return res.status(404).json({ message: "Recurring expense not found" });
+      }
+      res.json(expense);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch recurring expense" });
+    }
+  });
+
+  app.put("/api/recurring-expenses/:id", async (req, res) => {
+    try {
+      const validatedData = insertRecurringExpenseSchema.partial().parse(req.body);
+      const expense = await storage.updateRecurringExpense(req.params.id, validatedData);
+      if (!expense) {
+        return res.status(404).json({ message: "Recurring expense not found" });
+      }
+      res.json(expense);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid recurring expense data", error });
+    }
+  });
+
+  app.delete("/api/recurring-expenses/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteRecurringExpense(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Recurring expense not found" });
+      }
+      res.json({ message: "Recurring expense deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete recurring expense" });
+    }
+  });
+
+  // Generate recurring transactions for current month
+  app.post("/api/recurring-expenses/generate", async (req, res) => {
+    try {
+      const { month, year } = req.body;
+      const currentDate = new Date();
+      const targetMonth = month || currentDate.getMonth() + 1;
+      const targetYear = year || currentDate.getFullYear();
+      
+      const generatedTransactions = await storage.generateRecurringTransactions(targetMonth, targetYear);
+      res.json({ 
+        message: `Generated ${generatedTransactions.length} recurring transactions`,
+        transactions: generatedTransactions 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to generate recurring transactions", error });
     }
   });
 

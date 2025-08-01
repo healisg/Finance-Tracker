@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Banknote, Calendar, Target, Briefcase, Laptop, TrendingUp, Heart, Gamepad2, ChevronDown, ChevronUp, Tag, Users, User } from "lucide-react";
 import { useCurrency } from "@/hooks/use-currency";
 import type { Transaction } from "@shared/schema";
+import RecurringExpenseList from "@/components/recurring-expenses/recurring-expense-list";
 
 interface ExpenseGroupData {
   fundamentals: {
@@ -412,6 +413,11 @@ export default function Income() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Recurring Expenses Section */}
+      <div className="mt-8">
+        <RecurringExpenseList />
       </div>
     </div>
   );

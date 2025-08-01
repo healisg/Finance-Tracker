@@ -1,12 +1,13 @@
 import { 
-  users, transactions, savingsPots, debts, investments, budgets, financialGoals,
+  users, transactions, savingsPots, debts, investments, budgets, financialGoals, recurringExpenses,
   type User, type InsertUser, 
   type Transaction, type InsertTransaction,
   type SavingsPot, type InsertSavingsPot,
   type Debt, type InsertDebt,
   type Investment, type InsertInvestment,
   type Budget, type InsertBudget,
-  type FinancialGoal, type InsertFinancialGoal
+  type FinancialGoal, type InsertFinancialGoal,
+  type RecurringExpense, type InsertRecurringExpense
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
@@ -58,6 +59,16 @@ export interface IStorage {
   createFinancialGoal(goal: InsertFinancialGoal): Promise<FinancialGoal>;
   updateFinancialGoal(id: string, goal: Partial<InsertFinancialGoal>): Promise<FinancialGoal | undefined>;
   deleteFinancialGoal(id: string): Promise<boolean>;
+  
+  // Recurring Expense methods
+  getRecurringExpenses(userId: string): Promise<RecurringExpense[]>;
+  getRecurringExpenseById(id: string): Promise<RecurringExpense | undefined>;
+  createRecurringExpense(expense: InsertRecurringExpense): Promise<RecurringExpense>;
+  updateRecurringExpense(id: string, expense: Partial<InsertRecurringExpense>): Promise<RecurringExpense | undefined>;
+  deleteRecurringExpense(id: string): Promise<boolean>;
+  
+  // Recurring expense automation
+  generateRecurringTransactions(month: number, year: number): Promise<Transaction[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -134,7 +145,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTransaction(id: string): Promise<boolean> {
     const result = await db.delete(transactions).where(eq(transactions.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Savings Pot methods
@@ -166,7 +177,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSavingsPot(id: string): Promise<boolean> {
     const result = await db.delete(savingsPots).where(eq(savingsPots.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Debt methods
@@ -198,7 +209,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDebt(id: string): Promise<boolean> {
     const result = await db.delete(debts).where(eq(debts.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Investment methods
@@ -230,7 +241,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteInvestment(id: string): Promise<boolean> {
     const result = await db.delete(investments).where(eq(investments.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Budget methods
@@ -270,7 +281,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteBudget(id: string): Promise<boolean> {
     const result = await db.delete(budgets).where(eq(budgets.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Financial Goal methods
@@ -302,7 +313,87 @@ export class DatabaseStorage implements IStorage {
 
   async deleteFinancialGoal(id: string): Promise<boolean> {
     const result = await db.delete(financialGoals).where(eq(financialGoals.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Recurring Expense methods
+  async getRecurringExpenses(userId: string): Promise<RecurringExpense[]> {
+    return await db.select().from(recurringExpenses).where(eq(recurringExpenses.userId, userId));
+  }
+
+  async getRecurringExpenseById(id: string): Promise<RecurringExpense | undefined> {
+    const [expense] = await db.select().from(recurringExpenses).where(eq(recurringExpenses.id, id));
+    return expense || undefined;
+  }
+
+  async createRecurringExpense(expense: InsertRecurringExpense): Promise<RecurringExpense> {
+    const [newExpense] = await db.insert(recurringExpenses).values(expense).returning();
+    return newExpense;
+  }
+
+  async updateRecurringExpense(id: string, expense: Partial<InsertRecurringExpense>): Promise<RecurringExpense | undefined> {
+    const updateData = { ...expense, updatedAt: new Date() };
+    const [updatedExpense] = await db.update(recurringExpenses).set(updateData).where(eq(recurringExpenses.id, id)).returning();
+    return updatedExpense || undefined;
+  }
+
+  async deleteRecurringExpense(id: string): Promise<boolean> {
+    const result = await db.delete(recurringExpenses).where(eq(recurringExpenses.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Generate recurring transactions for a specific month
+  async generateRecurringTransactions(month: number, year: number): Promise<Transaction[]> {
+    const userId = "default-user"; // For now, using default user
+    
+    // Get all active recurring expenses for the user
+    const activeRecurringExpenses = await db.select()
+      .from(recurringExpenses)
+      .where(and(
+        eq(recurringExpenses.userId, userId),
+        eq(recurringExpenses.isActive, true)
+      ));
+
+    const generatedTransactions: Transaction[] = [];
+
+    for (const recurring of activeRecurringExpenses) {
+      // Calculate the date for this recurring expense
+      const targetDate = new Date(year, month - 1, recurring.dayOfMonth);
+      
+      // Check if we already have a transaction for this recurring expense in this month
+      const existingTransactionsInMonth = await db.select()
+        .from(transactions)
+        .where(and(
+          eq(transactions.recurringExpenseId, recurring.id),
+          eq(transactions.userId, userId)
+        ));
+
+      // Filter for current month transactions
+      const hasCurrentMonthTransaction = existingTransactionsInMonth.some(t => {
+        const transactionDate = new Date(t.date);
+        return transactionDate.getMonth() === month - 1 && transactionDate.getFullYear() === year;
+      });
+
+      if (!hasCurrentMonthTransaction) {
+        // Create the transaction
+        const newTransaction: InsertTransaction = {
+          userId,
+          type: 'expense',
+          amount: recurring.amount,
+          description: recurring.description,
+          category: recurring.category,
+          date: targetDate,
+          expenseGroup: recurring.expenseGroup,
+          isSharedExpense: recurring.isSharedExpense,
+          recurringExpenseId: recurring.id
+        };
+
+        const [createdTransaction] = await db.insert(transactions).values(newTransaction).returning();
+        generatedTransactions.push(createdTransaction);
+      }
+    }
+
+    return generatedTransactions;
   }
 }
 
