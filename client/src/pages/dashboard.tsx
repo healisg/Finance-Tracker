@@ -72,7 +72,7 @@ export default function Dashboard() {
   const renderSection = () => {
     switch (activeSection) {
       case 'overview':
-        return <Overview onEditTransaction={openEditModal} />;
+        return <Overview onEditTransaction={openEditModal} onNavigateToIncome={() => setActiveSection('income')} />;
       case 'income':
         return <Income />;
       case 'expenses':

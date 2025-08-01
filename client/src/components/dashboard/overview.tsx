@@ -28,9 +28,10 @@ interface DashboardSummary {
 
 interface OverviewProps {
   onEditTransaction?: (transaction: Transaction) => void;
+  onNavigateToIncome?: () => void;
 }
 
-export default function Overview({ onEditTransaction }: OverviewProps) {
+export default function Overview({ onEditTransaction, onNavigateToIncome }: OverviewProps) {
   const { data: summary, isLoading } = useQuery<DashboardSummary>({
     queryKey: ["/api/dashboard/summary"],
   });
@@ -211,7 +212,7 @@ export default function Overview({ onEditTransaction }: OverviewProps) {
 
       {/* Expense Groups Summary */}
       <div className="px-3 sm:px-4 lg:px-8 py-3 sm:py-4">
-        <ExpenseSummary />
+        <ExpenseSummary onNavigateToIncome={onNavigateToIncome} />
       </div>
 
       {/* Recent Transactions */}
