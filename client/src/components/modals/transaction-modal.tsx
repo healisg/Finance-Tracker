@@ -183,7 +183,7 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
       
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-        <div className="sidebar-gradient-bg rounded-xl w-full max-w-md border border-white/10">
+        <div className="sidebar-gradient-bg rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-white/10">
           <div className="flex items-center justify-between p-6 border-b border-white/10">
             <h2 className="text-xl font-jakarta font-semibold">
               {editTransaction ? 'Edit Transaction' : 'Add Transaction'}
