@@ -115,6 +115,7 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
         expenseGroup: data.expenseGroup,
         isSharedExpense: data.isSharedExpense,
       });
+      
       return response.json();
     },
     onSuccess: () => {
