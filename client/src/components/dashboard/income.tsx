@@ -209,7 +209,14 @@ export default function Income() {
               </div>
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
-                  onClick={() => handleEditTransaction(transaction)}
+                  onClick={() => handleEditTransaction({
+                    ...transaction,
+                    date: new Date(transaction.date),
+                    expenseGroup: transaction.expenseGroup || null,
+                    isSharedExpense: transaction.isSharedExpense || null,
+                    userId: transaction.userId || 'alex.johnson',
+                    createdAt: transaction.createdAt || null
+                  } as Transaction)}
                   className="p-1 hover:bg-white/10 rounded text-white/60 hover:text-white transition-colors"
                   title="Edit transaction"
                 >
