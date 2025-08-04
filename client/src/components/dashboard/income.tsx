@@ -491,7 +491,7 @@ export default function Income() {
       <TransactionModal
         isOpen={isTransactionModalOpen}
         onClose={handleCloseModal}
-        transaction={editingTransaction}
+        editTransaction={editingTransaction}
       />
     </div>
   );
