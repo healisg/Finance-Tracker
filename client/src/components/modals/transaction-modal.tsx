@@ -136,6 +136,31 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
     },
   });
 
+  const deleteTransactionMutation = useMutation({
+    mutationFn: async () => {
+      if (!editTransaction) throw new Error('No transaction to delete');
+      const response = await apiRequest('DELETE', `/api/transactions/${editTransaction.id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/summary'] });
+      toast({
+        title: "Success",
+        description: "Transaction deleted successfully",
+      });
+      onClose();
+      form.reset();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete transaction",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = async (data: TransactionFormData) => {
     saveTransactionMutation.mutate(data);
   };
@@ -403,6 +428,17 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
                 >
                   Cancel
                 </Button>
+                {editTransaction && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => deleteTransactionMutation.mutate()}
+                    disabled={deleteTransactionMutation.isPending}
+                    className="border-red-500/50 hover:bg-red-500/10 text-red-400 hover:text-red-300"
+                  >
+                    {deleteTransactionMutation.isPending ? 'Deleting...' : 'Delete'}
+                  </Button>
+                )}
                 <Button
                   type="submit"
                   disabled={saveTransactionMutation.isPending}

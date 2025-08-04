@@ -1,10 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
-import { Wallet, TrendingUp, TrendingDown, PiggyBank, ExternalLink, ArrowUp, ArrowDown, Car, Edit2 } from "lucide-react";
-import CashFlowChart from "@/components/charts/cash-flow-chart";
-import ExpenseCategoriesChart from "@/components/charts/expense-categories-chart";
-import ExpenseSummary from "@/components/expense-groups/expense-summary";
+import { ArrowUp, ArrowDown, Car, Edit2, Trash2 } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCurrency } from "@/hooks/use-currency";
-import type { Transaction } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import type { DashboardSummary, Transaction } from "@shared/schema";
 
 interface DashboardSummary {
   totalBalance: number;
@@ -36,6 +35,31 @@ export default function Overview({ onEditTransaction, onNavigateToIncome }: Over
     queryKey: ["/api/dashboard/summary"],
   });
   const { formatCurrency } = useCurrency();
+    const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const deleteTransactionMutation = useMutation({
+    mutationFn: async (transactionId: string) => {
+      return apiRequest(`/api/transactions/${transactionId}`, {
+        method: "DELETE",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/summary"] });
+      toast({
+        title: "Transaction deleted",
+        description: "Your transaction has been successfully deleted.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Something went wrong",
+        description: "There was an error deleting your transaction.",
+        variant: "destructive",
+      });
+    },
+  });
+
 
   if (isLoading) {
     return <div className="p-8">Loading...</div>;
@@ -174,7 +198,7 @@ export default function Overview({ onEditTransaction, onNavigateToIncome }: Over
                 {formatCurrency(summary.forecast.nextMonthIncome)}
               </div>
             </div>
-            
+
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 transition-all duration-300 hover:transform hover:scale-105 hover:bg-white/10">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingDown className="w-4 h-4 text-red-400" strokeWidth={1.5} />
@@ -184,7 +208,7 @@ export default function Overview({ onEditTransaction, onNavigateToIncome }: Over
                 {formatCurrency(summary.forecast.nextMonthExpenses)}
               </div>
             </div>
-            
+
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 transition-all duration-300 hover:transform hover:scale-105 hover:bg-white/10">
               <div className="flex items-center gap-2 mb-2">
                 <Wallet className="w-4 h-4 text-blue-400" strokeWidth={1.5} />
@@ -222,7 +246,7 @@ export default function Overview({ onEditTransaction, onNavigateToIncome }: Over
             <h3 className="text-sm font-medium font-geist">Recent Transactions</h3>
             <button className="text-xs text-blue-400 hover:text-blue-300 font-geist">View All</button>
           </div>
-          
+
           <div className="space-y-3">
             {summary?.recentTransactions?.length ? (
               summary.recentTransactions.map((transaction) => (
@@ -250,20 +274,29 @@ export default function Overview({ onEditTransaction, onNavigateToIncome }: Over
                       {transaction.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(parseFloat(transaction.amount)))}
                     </span>
                     {onEditTransaction && (
-                      <button
-                        onClick={() => onEditTransaction({
-                          ...transaction,
-                          date: new Date(transaction.date),
-                          expenseGroup: transaction.expenseGroup || null,
-                          isSharedExpense: transaction.isSharedExpense || null,
-                          userId: 'alex.johnson',
-                          createdAt: null
-                        } as Transaction)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-white/10 rounded-md"
-                        title="Edit transaction"
-                      >
-                        <Edit2 className="w-4 h-4 text-white/60 hover:text-white" strokeWidth={1.5} />
-                      </button>
+                      <>
+                        <button
+                          onClick={() => onEditTransaction({
+                            ...transaction,
+                            date: new Date(transaction.date),
+                            expenseGroup: transaction.expenseGroup || null,
+                            isSharedExpense: transaction.isSharedExpense || null,
+                            userId: 'alex.johnson',
+                            createdAt: null
+                          } as Transaction)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-white/10 rounded-md"
+                          title="Edit transaction"
+                        >
+                          <Edit2 className="w-4 h-4 text-white/60 hover:text-white" strokeWidth={1.5} />
+                        </button>
+                        <button
+                            onClick={() => deleteTransactionMutation.mutate(transaction.id)}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-white/10 rounded-md"
+                            title="Delete transaction"
+                        >
+                            <Trash2 className="w-4 h-4 text-white/60 hover:text-white" strokeWidth={1.5} />
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
