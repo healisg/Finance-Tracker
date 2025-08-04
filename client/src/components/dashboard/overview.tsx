@@ -43,9 +43,7 @@ export default function Overview({ onEditTransaction, onNavigateToIncome }: Over
 
   const deleteTransactionMutation = useMutation({
     mutationFn: async (transactionId: string) => {
-      return apiRequest(`/api/transactions/${transactionId}`, {
-        method: "DELETE",
-      });
+      return apiRequest("DELETE", `/api/transactions/${transactionId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/summary"] });
