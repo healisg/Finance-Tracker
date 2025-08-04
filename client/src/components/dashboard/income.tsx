@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Banknote, Calendar, Target, Briefcase, Laptop, TrendingUp, Heart, Gamepad2, ChevronDown, ChevronUp, Tag, Users, User } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Banknote, Calendar, Target, Briefcase, Laptop, TrendingUp, Heart, Gamepad2, ChevronDown, ChevronUp, Tag, Users, User, Edit2, Trash2 } from "lucide-react";
 import { useCurrency } from "@/hooks/use-currency";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import type { Transaction } from "@shared/schema";
 import RecurringExpenseList from "@/components/recurring-expenses/recurring-expense-list";
+import TransactionModal from "@/components/modals/transaction-modal";
 
 interface ExpenseGroupData {
   fundamentals: {
@@ -23,15 +26,54 @@ interface ExpenseGroupData {
 
 export default function Income() {
   const { formatCurrency } = useCurrency();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [expandedGroups, setExpandedGroups] = useState<{[key: string]: boolean}>({
     fundamentals: false,
     fun: false,
     futureYou: false
   });
+  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   
   const { data: transactions, isLoading } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions"],
   });
+
+  const deleteTransactionMutation = useMutation({
+    mutationFn: (id: string) => apiRequest(`/api/transactions/${id}`, { method: "DELETE" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/summary"] });
+      toast({
+        title: "Success",
+        description: "Transaction deleted successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete transaction",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEditTransaction = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setIsTransactionModalOpen(true);
+  };
+
+  const handleDeleteTransaction = (id: string) => {
+    if (confirm("Are you sure you want to delete this transaction?")) {
+      deleteTransactionMutation.mutate(id);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsTransactionModalOpen(false);
+    setEditingTransaction(null);
+  };
 
   if (isLoading) {
     return <div className="p-8">Loading...</div>;
@@ -144,7 +186,7 @@ export default function Income() {
         </div>
       )}
       {transactions.map(transaction => (
-        <div key={transaction.id} className="bg-white/5 rounded-lg p-3 border border-white/10">
+        <div key={transaction.id} className="bg-white/5 rounded-lg p-3 border border-white/10 hover:bg-white/10 transition-colors group">
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
@@ -159,9 +201,27 @@ export default function Income() {
                 <span>{formatTransactionDate(transaction.date)}</span>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-sm font-medium text-red-400">
-                -{formatCurrency(parseFloat(transaction.amount))}
+            <div className="flex items-center gap-2">
+              <div className="text-right">
+                <div className="text-sm font-medium text-red-400">
+                  -{formatCurrency(parseFloat(transaction.amount))}
+                </div>
+              </div>
+              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={() => handleEditTransaction(transaction)}
+                  className="p-1 hover:bg-white/10 rounded text-white/60 hover:text-white transition-colors"
+                  title="Edit transaction"
+                >
+                  <Edit2 className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={() => handleDeleteTransaction(transaction.id)}
+                  className="p-1 hover:bg-white/10 rounded text-white/60 hover:text-red-400 transition-colors"
+                  title="Delete transaction"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
               </div>
             </div>
           </div>
@@ -419,6 +479,13 @@ export default function Income() {
       <div className="mt-8">
         <RecurringExpenseList />
       </div>
+
+      {/* Transaction Modal */}
+      <TransactionModal
+        isOpen={isTransactionModalOpen}
+        onClose={handleCloseModal}
+        transaction={editingTransaction}
+      />
     </div>
   );
 }
