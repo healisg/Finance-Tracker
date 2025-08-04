@@ -119,7 +119,7 @@ export default function Income() {
           switch (transaction.expenseGroup) {
             case 'fundamentals':
               expenseGroups.fundamentals.total += amount;
-              if (transaction.isSharedExpense) {
+              if (transaction.isSharedExpense === true) {
                 expenseGroups.fundamentals.shared.push(transaction);
               } else {
                 expenseGroups.fundamentals.individual.push(transaction);

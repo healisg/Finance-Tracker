@@ -60,7 +60,7 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
       const originalDescription = wasSplitBill 
         ? editTransaction.description.split(' (Split bill')[0] 
         : editTransaction.description;
-      
+
       // If it was a split bill, double the amount to show the original total
       const originalAmount = wasSplitBill && editTransaction.type === 'expense'
         ? (parseFloat(editTransaction.amount) * 2).toString()
@@ -96,7 +96,7 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
       const finalAmount = data.splitBill && data.type === 'expense' 
         ? (parseFloat(data.amount) / 2).toString()
         : data.amount;
-      
+
       // Update description to indicate it's a split bill
       const finalDescription = data.splitBill && data.type === 'expense'
         ? `${data.description} (Split bill - your share: $${finalAmount})`
@@ -104,7 +104,7 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
 
       const method = editTransaction ? 'PUT' : 'POST';
       const url = editTransaction ? `/api/transactions/${editTransaction.id}` : '/api/transactions';
-      
+
       const response = await apiRequest(method, url, {
         userId: 'alex.johnson',
         type: data.type,
@@ -205,7 +205,7 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
         className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
         onClick={onClose}
       />
-      
+
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
         <div className="sidebar-gradient-bg rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-white/10">
@@ -220,7 +220,7 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
               <X className="w-5 h-5" strokeWidth={1.5} />
             </button>
           </div>
-          
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-4">
               <FormField
