@@ -91,7 +91,10 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
   }, [editTransaction, form]);
 
   const saveTransactionMutation = useMutation({
-    mutationFn: async (data: TransactionFormData) => {
+    mutationFn: async ({ data, transactionId }: { data: TransactionFormData; transactionId?: string }) => {
+      console.log('saveTransactionMutation called');
+      console.log('transactionId passed:', transactionId);
+      
       // Calculate the final amount - split in half if splitBill is enabled
       const finalAmount = data.splitBill && data.type === 'expense' 
         ? (parseFloat(data.amount) / 2).toString()
@@ -102,8 +105,11 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
         ? `${data.description} (Split bill - your share: $${finalAmount})`
         : data.description;
 
-      const method = editTransaction ? 'PUT' : 'POST';
-      const url = editTransaction ? `/api/transactions/${editTransaction.id}` : '/api/transactions';
+      const method = transactionId ? 'PUT' : 'POST';
+      const url = transactionId ? `/api/transactions/${transactionId}` : '/api/transactions';
+      
+      console.log('Using method:', method);
+      console.log('Using URL:', url);
 
       const response = await apiRequest(method, url, {
         userId: 'alex.johnson',
@@ -118,20 +124,20 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
       
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
       queryClient.invalidateQueries({ queryKey: ['/api/dashboard/summary'] });
       toast({
         title: "Success",
-        description: editTransaction ? "Transaction updated successfully" : "Transaction added successfully",
+        description: variables.transactionId ? "Transaction updated successfully" : "Transaction added successfully",
       });
       onClose();
       form.reset();
     },
-    onError: (error: any) => {
+    onError: (error: any, variables) => {
       toast({
         title: "Error",
-        description: error.message || (editTransaction ? "Failed to update transaction" : "Failed to add transaction"),
+        description: error.message || (variables.transactionId ? "Failed to update transaction" : "Failed to add transaction"),
         variant: "destructive",
       });
     },
@@ -139,6 +145,7 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
 
   const deleteTransactionMutation = useMutation({
     mutationFn: async () => {
+      console.log('deleteTransactionMutation called');
       if (!editTransaction) throw new Error('No transaction to delete');
       const response = await apiRequest('DELETE', `/api/transactions/${editTransaction.id}`);
       return response.json();
@@ -163,7 +170,13 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
   });
 
   const onSubmit = async (data: TransactionFormData) => {
-    saveTransactionMutation.mutate(data);
+    console.log('onSubmit called with data:', data);
+    console.log('editTransaction exists:', !!editTransaction);
+    console.log('editTransaction ID:', editTransaction?.id);
+    saveTransactionMutation.mutate({ 
+      data, 
+      transactionId: editTransaction?.id 
+    });
   };
 
   const categoryOptions = {
