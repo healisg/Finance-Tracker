@@ -41,7 +41,7 @@ export default function Income() {
   });
 
   const deleteTransactionMutation = useMutation({
-    mutationFn: (id: string) => apiRequest(`/api/transactions/${id}`, { method: "DELETE" }),
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/transactions/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/summary"] });
