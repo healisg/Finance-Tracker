@@ -110,7 +110,7 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
 
 
       const response = await apiRequest(method, url, {
-        userId: 'alex.johnson',
+        userId: 'default-user',
         type: data.type,
         amount: finalAmount,
         category: data.category,

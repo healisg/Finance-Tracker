@@ -34,7 +34,7 @@ Preferred communication style: Simple, everyday language.
 - **Connection**: Neon serverless PostgreSQL for scalable cloud database hosting
 - **Storage Implementation**: DatabaseStorage class with full CRUD operations for all financial entities including recurring expenses
 - **Recurring Expenses**: Automated transaction generation system that creates monthly transactions from recurring expense templates
-- **Default User**: Automatically created default user (alex.johnson) for immediate testing and development
+- **Default User**: Automatically created default user (default-user) for immediate testing and development
 
 ## Authentication and Authorization
 - **Session Management**: Express sessions with PostgreSQL session store using connect-pg-simple
