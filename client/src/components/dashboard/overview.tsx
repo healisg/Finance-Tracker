@@ -1,9 +1,12 @@
-import { ArrowUp, ArrowDown, Car, Edit2, Trash2 } from "lucide-react";
+import { ArrowUp, ArrowDown, Car, Edit2, Trash2, Wallet, ExternalLink, TrendingUp, TrendingDown, PiggyBank } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCurrency } from "@/hooks/use-currency";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { DashboardSummary, Transaction } from "@shared/schema";
+import CashFlowChart from "@/components/charts/cash-flow-chart";
+import ExpenseCategoriesChart from "@/components/charts/expense-categories-chart";
+import ExpenseSummary from "@/components/expense-groups/expense-summary";
 
 interface DashboardSummary {
   totalBalance: number;
