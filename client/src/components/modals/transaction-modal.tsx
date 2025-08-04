@@ -92,8 +92,7 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
 
   const saveTransactionMutation = useMutation({
     mutationFn: async ({ data, transactionId }: { data: TransactionFormData; transactionId?: string }) => {
-      console.log('saveTransactionMutation called');
-      console.log('transactionId passed:', transactionId);
+
       
       // Calculate the final amount - split in half if splitBill is enabled
       const finalAmount = data.splitBill && data.type === 'expense' 
@@ -108,8 +107,7 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
       const method = transactionId ? 'PUT' : 'POST';
       const url = transactionId ? `/api/transactions/${transactionId}` : '/api/transactions';
       
-      console.log('Using method:', method);
-      console.log('Using URL:', url);
+
 
       const response = await apiRequest(method, url, {
         userId: 'alex.johnson',
@@ -145,7 +143,7 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
 
   const deleteTransactionMutation = useMutation({
     mutationFn: async () => {
-      console.log('deleteTransactionMutation called');
+
       if (!editTransaction) throw new Error('No transaction to delete');
       const response = await apiRequest('DELETE', `/api/transactions/${editTransaction.id}`);
       return response.json();
@@ -170,9 +168,7 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
   });
 
   const onSubmit = async (data: TransactionFormData) => {
-    console.log('onSubmit called with data:', data);
-    console.log('editTransaction exists:', !!editTransaction);
-    console.log('editTransaction ID:', editTransaction?.id);
+
     saveTransactionMutation.mutate({ 
       data, 
       transactionId: editTransaction?.id 
