@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { X } from "lucide-react";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { X, AlertCircle, CreditCard } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -12,7 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { Transaction } from "@shared/schema";
+import { useCurrency } from "@/hooks/use-currency";
+import type { Transaction, Debt } from "@shared/schema";
 import { EXPENSE_GROUPS } from "@shared/schema";
 
 const transactionSchema = z.object({
@@ -37,6 +38,18 @@ interface TransactionModalProps {
 export default function TransactionModal({ isOpen, onClose, editTransaction }: TransactionModalProps) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { formatCurrency } = useCurrency();
+
+  // Fetch debts for category-based associations
+  const { data: debts } = useQuery({
+    queryKey: ['/api/debts'],
+    queryFn: async () => {
+      const response = await fetch('/api/debts');
+      if (!response.ok) throw new Error('Failed to fetch debts');
+      return response.json();
+    },
+    enabled: isOpen,
+  });
 
   const form = useForm<TransactionFormData>({
     resolver: zodResolver(transactionSchema),
@@ -390,6 +403,46 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
                       </SelectContent>
                     </Select>
                     <FormMessage />
+                    
+                    {/* Debt Association Indicator */}
+                    {selectedType === 'expense' && field.value && debts && (() => {
+                      const relatedDebts = debts.filter((debt: Debt) => {
+                        const category = field.value.toLowerCase();
+                        return (
+                          debt.category.toLowerCase().includes(category) ||
+                          (debt.category === 'credit_card' && (category === 'shopping' || category === 'entertainment')) ||
+                          (debt.category === 'mortgage' && category === 'housing') ||
+                          (debt.category === 'car_loan' && category === 'transport')
+                        );
+                      });
+                      
+                      if (relatedDebts.length > 0) {
+                        return (
+                          <div className="mt-2 p-3 bg-blue-900/20 border border-blue-600/30 rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <CreditCard className="w-4 h-4 text-blue-400" />
+                              <span className="text-sm font-medium text-blue-400 font-geist">
+                                Related Debts
+                              </span>
+                            </div>
+                            <div className="space-y-1">
+                              {relatedDebts.map((debt: Debt) => (
+                                <div key={debt.id} className="flex items-center justify-between text-xs">
+                                  <span className="text-white/70 font-geist">{debt.name}</span>
+                                  <span className="text-red-400 font-geist">
+                                    {formatCurrency(parseFloat(debt.remainingAmount))} remaining
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                            <p className="text-xs text-blue-300/80 mt-2 font-geist">
+                              This expense may affect the debt balances above
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
                   </FormItem>
                 )}
               />

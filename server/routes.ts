@@ -146,6 +146,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+
+
+  app.put("/api/debts/:id", async (req, res) => {
+    try {
+      const validatedData = insertDebtSchema.partial().parse({
+        ...req.body,
+        dueDate: req.body.dueDate ? new Date(req.body.dueDate) : undefined
+      });
+      const debt = await storage.updateDebt(req.params.id, validatedData);
+      if (!debt) {
+        return res.status(404).json({ message: "Debt not found" });
+      }
+      res.json(debt);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid debt data", error });
+    }
+  });
+
+  app.delete("/api/debts/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteDebt(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Debt not found" });
+      }
+      res.json({ message: "Debt deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete debt" });
+    }
+  });
+
   // Investments routes
   app.get("/api/investments", async (req, res) => {
     try {

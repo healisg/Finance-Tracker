@@ -41,6 +41,7 @@ export const debts = pgTable("debts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull(),
   name: text("name").notNull(),
+  category: text("category").notNull(), // 'credit_card', 'loan', 'mortgage', 'other'
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
   remainingAmount: decimal("remaining_amount", { precision: 10, scale: 2 }).notNull(),
   interestRate: decimal("interest_rate", { precision: 5, scale: 2 }),
