@@ -189,6 +189,7 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
       { value: 'shopping', label: 'Shopping' },
       { value: 'utilities', label: 'Utilities' },
       { value: 'subscriptions', label: 'Subscriptions' },
+      { value: 'credit-cards', label: 'Credit Cards' },
       { value: 'entertainment', label: 'Entertainment' },
       { value: 'healthcare', label: 'Healthcare' },
       { value: 'education', label: 'Education' },
