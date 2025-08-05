@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus, CreditCard, TrendingDown, Calendar, Percent, Edit, Trash2, AlertCircle } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -25,14 +25,29 @@ interface DebtFormData {
 function DebtModal({ isOpen, onClose, editDebt }: DebtModalProps) {
   const { toast } = useToast();
   const [formData, setFormData] = useState<DebtFormData>({
-    name: editDebt?.name || "",
-    category: editDebt?.category || "credit_card",
-    totalAmount: editDebt?.totalAmount || "",
-    remainingAmount: editDebt?.remainingAmount || "",
-    interestRate: editDebt?.interestRate || "",
-    minimumPayment: editDebt?.minimumPayment || "",
-    dueDate: editDebt?.dueDate ? new Date(editDebt.dueDate).toISOString().split('T')[0] : "",
+    name: "",
+    category: "credit_card",
+    totalAmount: "",
+    remainingAmount: "",
+    interestRate: "",
+    minimumPayment: "",
+    dueDate: "",
   });
+
+  // Reset form data when editDebt changes or modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        name: editDebt?.name || "",
+        category: editDebt?.category || "credit_card",
+        totalAmount: editDebt?.totalAmount || "",
+        remainingAmount: editDebt?.remainingAmount || "",
+        interestRate: editDebt?.interestRate || "",
+        minimumPayment: editDebt?.minimumPayment || "",
+        dueDate: editDebt?.dueDate ? new Date(editDebt.dueDate).toISOString().split('T')[0] : "",
+      });
+    }
+  }, [editDebt, isOpen]);
 
   const debtMutation = useMutation({
     mutationFn: async (data: DebtFormData) => {
