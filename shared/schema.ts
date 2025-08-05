@@ -32,8 +32,10 @@ export const savingsPots = pgTable("savings_pots", {
   name: text("name").notNull(),
   targetAmount: decimal("target_amount", { precision: 10, scale: 2 }).notNull(),
   currentAmount: decimal("current_amount", { precision: 10, scale: 2 }).default("0"),
+  category: text("category").notNull().default("emergency"),
   icon: text("icon").default("piggy-bank"),
   color: text("color").default("green"),
+  deadline: timestamp("deadline"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
