@@ -101,7 +101,7 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
 
       // Update description to indicate it's a split bill
       const finalDescription = data.splitBill && data.type === 'expense'
-        ? `${data.description} (Split bill - your share: $${finalAmount})`
+        ? `${data.description} (Split bill - your share: £${finalAmount})`
         : data.description;
 
       const method = transactionId ? 'PUT' : 'POST';
@@ -267,13 +267,13 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
                       Amount
                       {splitBillEnabled && selectedType === 'expense' && currentAmount && (
                         <span className="text-blue-400 ml-2">
-                          (Your share: ${(parseFloat(currentAmount || '0') / 2).toFixed(2)})
+                          (Your share: £{(parseFloat(currentAmount || '0') / 2).toFixed(2)})
                         </span>
                       )}
                     </FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <span className="absolute left-3 top-2 text-white/60">$</span>
+                        <span className="absolute left-3 top-2 text-white/60">£</span>
                         <Input 
                           {...field}
                           type="number"

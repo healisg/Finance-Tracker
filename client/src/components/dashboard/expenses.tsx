@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { CreditCard, Calendar, AlertTriangle, Utensils, Car, ShoppingBag, Coffee } from "lucide-react";
+import { useCurrency } from "@/hooks/use-currency";
 import type { Transaction } from "@shared/schema";
 
 export default function Expenses() {
@@ -25,14 +26,9 @@ export default function Expenses() {
     .reduce((sum: number, t: any) => sum + parseFloat(t.amount), 0);
 
   const dailyAverage = thisMonthExpenses / new Date().getDate();
-  const budgetLeft = Math.max(0, 5000 - thisMonthExpenses); // Assuming $5000 budget
+  const budgetLeft = Math.max(0, 5000 - thisMonthExpenses); // Assuming £5000 budget
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
+  const { formatCurrency } = useCurrency();
 
   // Group expenses by category
   const expensesByCategory = expenseTransactions.reduce((acc: any, t: any) => {
