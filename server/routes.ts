@@ -88,7 +88,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertSavingsPotSchema.parse({
         ...req.body,
-        userId: DEFAULT_USER_ID
+        userId: DEFAULT_USER_ID,
+        deadline: req.body.deadline ? new Date(req.body.deadline) : undefined
       });
       const pot = await storage.createSavingsPot(validatedData);
       res.json(pot);
@@ -99,7 +100,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/savings-pots/:id", async (req, res) => {
     try {
-      const validatedData = insertSavingsPotSchema.partial().parse(req.body);
+      const validatedData = insertSavingsPotSchema.partial().parse({
+        ...req.body,
+        deadline: req.body.deadline ? new Date(req.body.deadline) : undefined
+      });
       const pot = await storage.updateSavingsPot(req.params.id, validatedData);
       if (!pot) {
         return res.status(404).json({ message: "Savings pot not found" });
