@@ -24,7 +24,6 @@ const transactionSchema = z.object({
   date: z.string().min(1, "Date is required"),
   expenseGroup: z.enum(['fundamentals', 'fun', 'future-you']).optional(),
   isSharedExpense: z.boolean().optional(),
-  splitBill: z.boolean().optional(),
 });
 
 type TransactionFormData = z.infer<typeof transactionSchema>;
@@ -61,21 +60,20 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
       date: new Date().toISOString().split('T')[0],
       expenseGroup: undefined,
       isSharedExpense: false,
-      splitBill: false,
     },
   });
 
   // Update form when editing a transaction
   useEffect(() => {
     if (editTransaction) {
-      // Check if the transaction was a split bill by looking at the description
-      const wasSplitBill = editTransaction.description.includes('(Split bill');
-      const originalDescription = wasSplitBill 
-        ? editTransaction.description.split(' (Split bill')[0] 
+      // Check if the transaction was shared by looking at the description
+      const wasShared = editTransaction.description.includes('(Shared expense');
+      const originalDescription = wasShared 
+        ? editTransaction.description.split(' (Shared expense')[0] 
         : editTransaction.description;
 
-      // If it was a split bill, double the amount to show the original total
-      const originalAmount = wasSplitBill && editTransaction.type === 'expense'
+      // If it was shared, double the amount to show the original total
+      const originalAmount = wasShared && editTransaction.type === 'expense'
         ? (parseFloat(editTransaction.amount) * 2).toString()
         : editTransaction.amount;
 
@@ -87,7 +85,6 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
         date: new Date(editTransaction.date).toISOString().split('T')[0],
         expenseGroup: editTransaction.expenseGroup as 'fundamentals' | 'fun' | 'future-you' | undefined,
         isSharedExpense: editTransaction.isSharedExpense || false,
-        splitBill: wasSplitBill,
       });
     } else {
       form.reset({
@@ -98,7 +95,6 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
         date: new Date().toISOString().split('T')[0],
         expenseGroup: undefined,
         isSharedExpense: false,
-        splitBill: false,
       });
     }
   }, [editTransaction, form]);
@@ -107,14 +103,14 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
     mutationFn: async ({ data, transactionId }: { data: TransactionFormData; transactionId?: string }) => {
 
       
-      // Calculate the final amount - split in half if splitBill is enabled
-      const finalAmount = data.splitBill && data.type === 'expense' 
+      // Calculate the final amount - split in half if isSharedExpense is enabled
+      const finalAmount = data.isSharedExpense && data.type === 'expense' 
         ? (parseFloat(data.amount) / 2).toString()
         : data.amount;
 
-      // Update description to indicate it's a split bill
-      const finalDescription = data.splitBill && data.type === 'expense'
-        ? `${data.description} (Split bill - your share: £${finalAmount})`
+      // Update description to indicate it's a shared expense
+      const finalDescription = data.isSharedExpense && data.type === 'expense'
+        ? `${data.description} (Shared expense - your share: £${finalAmount})`
         : data.description;
 
       const method = transactionId ? 'PUT' : 'POST';
@@ -222,7 +218,6 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
   if (!isOpen) return null;
 
   const selectedType = form.watch('type');
-  const splitBillEnabled = form.watch('splitBill');
   const currentAmount = form.watch('amount');
 
   return (
@@ -280,7 +275,7 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
                   <FormItem>
                     <FormLabel className="text-sm font-medium font-geist">
                       Amount
-                      {splitBillEnabled && selectedType === 'expense' && currentAmount && (
+                      {form.watch('isSharedExpense') && selectedType === 'expense' && currentAmount && (
                         <span className="text-blue-400 ml-2">
                           (Your share: £{(parseFloat(currentAmount || '0') / 2).toFixed(2)})
                         </span>
@@ -293,7 +288,7 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
                           {...field}
                           type="number"
                           step="0.01"
-                          placeholder={splitBillEnabled && selectedType === 'expense' ? "Total bill amount" : "0.00"}
+                          placeholder={form.watch('isSharedExpense') && selectedType === 'expense' ? "Total bill amount" : "0.00"}
                           className="pl-8 bg-white/10 border-white/20 text-white"
                         />
                       </div>
@@ -345,7 +340,7 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
                               Shared with Spouse
                             </FormLabel>
                             <div className="text-xs text-white/60 font-geist">
-                              This is a joint household expense
+                              Split this expense in half with spouse
                             </div>
                           </div>
                           <FormControl>
@@ -358,29 +353,6 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
                       )}
                     />
                   )}
-
-                  <FormField
-                    control={form.control}
-                    name="splitBill"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border border-white/20 p-3 bg-white/5">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-sm font-medium font-geist">
-                            Split Bill
-                          </FormLabel>
-                          <div className="text-xs text-white/60">
-                            Divide expense in half with spouse
-                          </div>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
                 </>
               )}
 
