@@ -220,6 +220,8 @@ export default function RecurringExpenseModal({ isOpen, onClose, expense }: Recu
                 <SelectItem value="healthcare">Healthcare</SelectItem>
                 <SelectItem value="education">Education</SelectItem>
                 <SelectItem value="housing">Housing</SelectItem>
+                <SelectItem value="savings">Savings</SelectItem>
+                <SelectItem value="investments">Investments</SelectItem>
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
