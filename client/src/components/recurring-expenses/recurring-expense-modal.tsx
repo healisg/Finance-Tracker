@@ -202,12 +202,27 @@ export default function RecurringExpenseModal({ isOpen, onClose, expense }: Recu
             <Label htmlFor="category" className="text-sm font-medium font-geist text-white">
               Category
             </Label>
-            <Input
-              id="category"
-              placeholder="e.g., Entertainment, Housing, Groceries"
-              className="bg-white/10 border-white/20 text-white focus-visible:ring-0 focus-visible:ring-offset-0"
-              {...form.register("category")}
-            />
+            <Select
+              value={form.watch("category")}
+              onValueChange={(value) => form.setValue("category", value)}
+            >
+              <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="food">Food & Dining</SelectItem>
+                <SelectItem value="transport">Transportation</SelectItem>
+                <SelectItem value="shopping">Shopping</SelectItem>
+                <SelectItem value="utilities">Utilities</SelectItem>
+                <SelectItem value="subscriptions">Subscriptions</SelectItem>
+                <SelectItem value="credit-cards">Credit Cards</SelectItem>
+                <SelectItem value="entertainment">Entertainment</SelectItem>
+                <SelectItem value="healthcare">Healthcare</SelectItem>
+                <SelectItem value="education">Education</SelectItem>
+                <SelectItem value="housing">Housing</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
             {form.formState.errors.category && (
               <p className="text-red-400 text-sm mt-1">{form.formState.errors.category.message}</p>
             )}
