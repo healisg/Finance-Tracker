@@ -62,6 +62,8 @@ export default function RecurringExpenseModal({ isOpen, onClose, expense }: Recu
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/recurring-expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/summary"] });
       toast({
         title: "Success",
         description: "Recurring expense created successfully",
@@ -90,6 +92,8 @@ export default function RecurringExpenseModal({ isOpen, onClose, expense }: Recu
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/recurring-expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/summary"] });
       toast({
         title: "Success",
         description: "Recurring expense updated successfully",

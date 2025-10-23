@@ -53,8 +53,10 @@ export default function RecurringExpenseList() {
       return response.json();
     },
     onSuccess: (data: any) => {
+      // Invalidate all queries that depend on transaction data
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/summary"] });
+      
       toast({
         title: "Success",
         description: `Generated ${data.transactions?.length || 0} recurring transactions`,
