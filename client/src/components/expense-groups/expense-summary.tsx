@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Heart, Gamepad2, Target, Users, User } from "lucide-react";
 import { useCurrency } from "@/hooks/use-currency";
 import type { Transaction } from "@shared/schema";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface ExpenseSummaryProps {
   onNavigateToIncome?: () => void;
