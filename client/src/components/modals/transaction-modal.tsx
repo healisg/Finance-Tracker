@@ -378,17 +378,9 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
                     </Select>
                     <FormMessage />
                     
-                    {/* Debt Association Indicator */}
-                    {selectedType === 'expense' && field.value && debts && (() => {
-                      const relatedDebts = debts.filter((debt: Debt) => {
-                        const category = field.value.toLowerCase();
-                        return (
-                          debt.category.toLowerCase().includes(category) ||
-                          (debt.category === 'credit_card' && (category === 'shopping' || category === 'entertainment')) ||
-                          (debt.category === 'mortgage' && category === 'housing') ||
-                          (debt.category === 'car_loan' && category === 'transport')
-                        );
-                      });
+                    {/* Debt Association Indicator - Only for Credit Cards category */}
+                    {selectedType === 'expense' && field.value === 'credit-cards' && debts && (() => {
+                      const relatedDebts = debts.filter((debt: Debt) => debt.category === 'credit_card');
                       
                       if (relatedDebts.length > 0) {
                         return (
