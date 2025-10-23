@@ -207,6 +207,8 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
       { value: 'healthcare', label: 'Healthcare' },
       { value: 'education', label: 'Education' },
       { value: 'housing', label: 'Housing' },
+      { value: 'savings', label: 'Savings' },
+      { value: 'investments', label: 'Investments' },
       { value: 'other', label: 'Other' },
     ],
     transfer: [
