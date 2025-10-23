@@ -34,7 +34,7 @@ interface TransactionModalProps {
   editTransaction?: Transaction | null;
 }
 
-function SavingsIndicator() {
+function SavingsIndicator({ description }: { description: string }) {
   const { formatCurrency } = useCurrency();
   
   const { data: savingsPots } = useQuery<SavingsPot[]>({
@@ -47,30 +47,64 @@ function SavingsIndicator() {
   });
 
   if (!savingsPots || savingsPots.length === 0) {
-    return null;
+    return (
+      <div className="mt-2 p-3 bg-yellow-900/20 border border-yellow-600/30 rounded-lg">
+        <div className="flex items-center gap-2 mb-2">
+          <AlertCircle className="w-4 h-4 text-yellow-400" />
+          <span className="text-sm font-medium text-yellow-400 font-geist">
+            No Savings Pots Found
+          </span>
+        </div>
+        <p className="text-xs text-yellow-300/80 font-geist">
+          Create a savings pot to track this savings transaction
+        </p>
+      </div>
+    );
   }
+
+  // Find matching pot based on description
+  const matchingPot = description ? savingsPots.find(pot => 
+    description.toLowerCase().includes(pot.name.toLowerCase()) ||
+    pot.name.toLowerCase().includes(description.toLowerCase())
+  ) : null;
 
   return (
     <div className="mt-2 p-3 bg-green-900/20 border border-green-600/30 rounded-lg">
       <div className="flex items-center gap-2 mb-2">
         <PiggyBank className="w-4 h-4 text-green-400" />
         <span className="text-sm font-medium text-green-400 font-geist">
-          Related Savings
+          {matchingPot ? 'Will Update Savings Pot' : 'Available Savings Pots'}
         </span>
       </div>
       <div className="space-y-1">
-        {savingsPots.map((pot: SavingsPot) => (
-          <div key={pot.id} className="flex items-center justify-between text-xs">
-            <span className="text-white/70 font-geist">{pot.name}</span>
-            <span className="text-green-400 font-geist">
-              {formatCurrency(parseFloat(pot.currentAmount || '0'))} saved
-            </span>
+        {matchingPot ? (
+          <div className="p-2 bg-green-800/30 rounded border border-green-600/50">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-white font-medium font-geist">{matchingPot.name}</span>
+              <span className="text-green-400 font-geist">
+                {formatCurrency(parseFloat(matchingPot.currentAmount || '0'))} saved
+              </span>
+            </div>
+            <p className="text-xs text-green-300/80 mt-1 font-geist">
+              This pot will be updated with your transaction amount
+            </p>
           </div>
-        ))}
+        ) : (
+          <>
+            {savingsPots.slice(0, 3).map((pot: SavingsPot) => (
+              <div key={pot.id} className="flex items-center justify-between text-xs">
+                <span className="text-white/70 font-geist">{pot.name}</span>
+                <span className="text-green-400 font-geist">
+                  {formatCurrency(parseFloat(pot.currentAmount || '0'))} saved
+                </span>
+              </div>
+            ))}
+            <p className="text-xs text-green-300/80 mt-2 font-geist">
+              💡 Include a pot name in the description to auto-update it
+            </p>
+          </>
+        )}
       </div>
-      <p className="text-xs text-green-300/80 mt-2 font-geist">
-        This transaction may contribute to the savings pots above
-      </p>
     </div>
   );
 }
@@ -456,7 +490,7 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
 
               {/* Savings Association Indicator - Only for Savings category */}
               {selectedType === 'expense' && form.watch('category') === 'savings' && (
-                <SavingsIndicator />
+                <SavingsIndicator description={form.watch('description')} />
               )}
 
               <FormField

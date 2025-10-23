@@ -28,6 +28,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         date: new Date(req.body.date)
       });
       const transaction = await storage.createTransaction(validatedData);
+      
+      // If this is a savings transaction, update the corresponding savings pot
+      if (validatedData.category === 'savings' && validatedData.type === 'expense') {
+        const savingsPots = await storage.getSavingsPots(DEFAULT_USER_ID);
+        
+        // Try to match the transaction description with a savings pot name
+        const matchingPot = savingsPots.find(pot => 
+          validatedData.description.toLowerCase().includes(pot.name.toLowerCase()) ||
+          pot.name.toLowerCase().includes(validatedData.description.toLowerCase())
+        );
+        
+        if (matchingPot) {
+          // Update the savings pot's current amount
+          const newAmount = (parseFloat(matchingPot.currentAmount || "0") + parseFloat(validatedData.amount)).toString();
+          await storage.updateSavingsPot(matchingPot.id, {
+            currentAmount: newAmount
+          });
+        }
+      }
+      
       res.json(transaction);
     } catch (error) {
       res.status(400).json({ message: "Invalid transaction data", error });
@@ -48,14 +68,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/transactions/:id", async (req, res) => {
     try {
+      const oldTransaction = await storage.getTransactionById(req.params.id);
+      if (!oldTransaction) {
+        return res.status(404).json({ message: "Transaction not found" });
+      }
+      
       const validatedData = insertTransactionSchema.partial().parse({
         ...req.body,
         date: req.body.date ? new Date(req.body.date) : undefined
       });
+      
       const transaction = await storage.updateTransaction(req.params.id, validatedData);
-      if (!transaction) {
-        return res.status(404).json({ message: "Transaction not found" });
+      
+      // Handle savings pot updates when transaction is updated
+      const savingsPots = await storage.getSavingsPots(DEFAULT_USER_ID);
+      
+      // If the old transaction was a savings expense, reverse it
+      if (oldTransaction.category === 'savings' && oldTransaction.type === 'expense') {
+        const matchingPot = savingsPots.find(pot => 
+          oldTransaction.description.toLowerCase().includes(pot.name.toLowerCase()) ||
+          pot.name.toLowerCase().includes(oldTransaction.description.toLowerCase())
+        );
+        
+        if (matchingPot) {
+          const newAmount = (parseFloat(matchingPot.currentAmount || "0") - parseFloat(oldTransaction.amount)).toString();
+          await storage.updateSavingsPot(matchingPot.id, {
+            currentAmount: Math.max(0, parseFloat(newAmount)).toString()
+          });
+        }
       }
+      
+      // If the new transaction is a savings expense, apply it
+      if (validatedData.category === 'savings' && (validatedData.type === 'expense' || oldTransaction.type === 'expense')) {
+        const matchingPot = savingsPots.find(pot => 
+          (validatedData.description || oldTransaction.description).toLowerCase().includes(pot.name.toLowerCase()) ||
+          pot.name.toLowerCase().includes((validatedData.description || oldTransaction.description).toLowerCase())
+        );
+        
+        if (matchingPot) {
+          const amountToAdd = validatedData.amount || oldTransaction.amount;
+          const newAmount = (parseFloat(matchingPot.currentAmount || "0") + parseFloat(amountToAdd)).toString();
+          await storage.updateSavingsPot(matchingPot.id, {
+            currentAmount: newAmount
+          });
+        }
+      }
+      
       res.json(transaction);
     } catch (error) {
       res.status(400).json({ message: "Invalid transaction data", error });
@@ -64,10 +122,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/transactions/:id", async (req, res) => {
     try {
-      const deleted = await storage.deleteTransaction(req.params.id);
-      if (!deleted) {
+      const transaction = await storage.getTransactionById(req.params.id);
+      if (!transaction) {
         return res.status(404).json({ message: "Transaction not found" });
       }
+      
+      // If this was a savings transaction, reverse it from the savings pot
+      if (transaction.category === 'savings' && transaction.type === 'expense') {
+        const savingsPots = await storage.getSavingsPots(DEFAULT_USER_ID);
+        const matchingPot = savingsPots.find(pot => 
+          transaction.description.toLowerCase().includes(pot.name.toLowerCase()) ||
+          pot.name.toLowerCase().includes(transaction.description.toLowerCase())
+        );
+        
+        if (matchingPot) {
+          const newAmount = (parseFloat(matchingPot.currentAmount || "0") - parseFloat(transaction.amount)).toString();
+          await storage.updateSavingsPot(matchingPot.id, {
+            currentAmount: Math.max(0, parseFloat(newAmount)).toString()
+          });
+        }
+      }
+      
+      const deleted = await storage.deleteTransaction(req.params.id);
       res.json({ message: "Transaction deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete transaction" });
