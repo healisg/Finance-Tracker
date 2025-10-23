@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { CreditCard, Calendar, AlertTriangle, Utensils, Car, ShoppingBag, Coffee } from "lucide-react";
 import { useCurrency } from "@/hooks/use-currency";
 import type { Transaction } from "@shared/schema";
+import RecurringExpenseList from "@/components/recurring-expenses/recurring-expense-list";
 
 export default function Expenses() {
   const { data: transactions, isLoading } = useQuery<Transaction[]>({
@@ -192,6 +193,11 @@ export default function Expenses() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Recurring Expenses Section */}
+      <div className="mt-6">
+        <RecurringExpenseList />
       </div>
     </div>
   );

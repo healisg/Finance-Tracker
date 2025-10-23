@@ -5,7 +5,6 @@ import { useCurrency } from "@/hooks/use-currency";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { Transaction } from "@shared/schema";
-import RecurringExpenseList from "@/components/recurring-expenses/recurring-expense-list";
 import TransactionModal from "@/components/modals/transaction-modal";
 
 interface ExpenseGroupData {
@@ -480,11 +479,6 @@ export default function Income() {
             )}
           </div>
         </div>
-      </div>
-
-      {/* Recurring Expenses Section */}
-      <div className="mt-8">
-        <RecurringExpenseList />
       </div>
 
       {/* Transaction Modal */}
