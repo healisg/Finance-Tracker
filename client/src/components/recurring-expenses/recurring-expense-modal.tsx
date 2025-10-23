@@ -132,8 +132,14 @@ export default function RecurringExpenseModal({ isOpen, onClose, expense }: Recu
   }, [expense, form]);
 
   const onSubmit = (data: RecurringExpenseFormData) => {
+    // If shared expense, split the amount in half
+    const finalAmount = data.isSharedExpense 
+      ? (parseFloat(data.amount) / 2).toFixed(2)
+      : data.amount;
+
     const submitData: InsertRecurringExpense = {
       ...data,
+      amount: finalAmount,
       userId: "default-user", // This will be set by the backend
     };
 
@@ -283,7 +289,7 @@ export default function RecurringExpenseModal({ isOpen, onClose, expense }: Recu
           <div className="flex items-center justify-between py-2">
             <div>
               <Label className="text-sm font-medium font-geist text-white">Shared Expense</Label>
-              <p className="text-xs text-white/60 font-geist">Split this expense with spouse</p>
+              <p className="text-xs text-white/60 font-geist">Split this expense 50/50 with spouse</p>
             </div>
             <Switch
               checked={form.watch("isSharedExpense")}
