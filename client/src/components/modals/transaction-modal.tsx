@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { X, AlertCircle, CreditCard } from "lucide-react";
+import { X, AlertCircle, CreditCard, PiggyBank } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useCurrency } from "@/hooks/use-currency";
-import type { Transaction, Debt } from "@shared/schema";
+import type { Transaction, Debt, SavingsPot } from "@shared/schema";
 import { EXPENSE_GROUPS } from "@shared/schema";
 
 const transactionSchema = z.object({
@@ -32,6 +32,47 @@ interface TransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
   editTransaction?: Transaction | null;
+}
+
+function SavingsIndicator() {
+  const { formatCurrency } = useCurrency();
+  
+  const { data: savingsPots } = useQuery<SavingsPot[]>({
+    queryKey: ['/api/savings-pots'],
+    queryFn: async () => {
+      const response = await fetch('/api/savings-pots');
+      if (!response.ok) throw new Error('Failed to fetch savings pots');
+      return response.json();
+    },
+  });
+
+  if (!savingsPots || savingsPots.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-2 p-3 bg-green-900/20 border border-green-600/30 rounded-lg">
+      <div className="flex items-center gap-2 mb-2">
+        <PiggyBank className="w-4 h-4 text-green-400" />
+        <span className="text-sm font-medium text-green-400 font-geist">
+          Related Savings
+        </span>
+      </div>
+      <div className="space-y-1">
+        {savingsPots.map((pot: SavingsPot) => (
+          <div key={pot.id} className="flex items-center justify-between text-xs">
+            <span className="text-white/70 font-geist">{pot.name}</span>
+            <span className="text-green-400 font-geist">
+              {formatCurrency(parseFloat(pot.currentAmount || '0'))} saved
+            </span>
+          </div>
+        ))}
+      </div>
+      <p className="text-xs text-green-300/80 mt-2 font-geist">
+        This transaction may contribute to the savings pots above
+      </p>
+    </div>
+  );
 }
 
 export default function TransactionModal({ isOpen, onClose, editTransaction }: TransactionModalProps) {
@@ -412,6 +453,11 @@ export default function TransactionModal({ isOpen, onClose, editTransaction }: T
                   </FormItem>
                 )}
               />
+
+              {/* Savings Association Indicator - Only for Savings category */}
+              {selectedType === 'expense' && form.watch('category') === 'savings' && (
+                <SavingsIndicator />
+              )}
 
               <FormField
                 control={form.control}
