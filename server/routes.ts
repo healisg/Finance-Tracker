@@ -335,16 +335,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const savingsPots = await storage.getSavingsPots(DEFAULT_USER_ID);
 
       const now = new Date();
-      const currentMonth = now.getMonth() + 1;
-      const currentYear = now.getFullYear();
-      const nextMonth = now.getMonth() + 2 > 12 ? 1 : now.getMonth() + 2;
-      const nextYear = now.getMonth() + 2 > 12 ? now.getFullYear() + 1 : now.getFullYear();
+      // Allow filtering by specific month/year from query params
+      const targetMonth = req.query.month ? parseInt(req.query.month as string) : now.getMonth() + 1;
+      const targetYear = req.query.year ? parseInt(req.query.year as string) : now.getFullYear();
+      
+      const nextMonth = targetMonth + 1 > 12 ? 1 : targetMonth + 1;
+      const nextYear = targetMonth + 1 > 12 ? targetYear + 1 : targetYear;
 
-      // Calculate current month totals (past + future within current month)
-      const currentMonthTransactions = transactions.filter(t => {
+      // Calculate target month totals
+      const targetMonthTransactions = transactions.filter(t => {
         const transactionDate = new Date(t.date);
-        return transactionDate.getMonth() + 1 === currentMonth && 
-               transactionDate.getFullYear() === currentYear;
+        return transactionDate.getMonth() + 1 === targetMonth && 
+               transactionDate.getFullYear() === targetYear;
       });
 
       // Calculate next month totals for forecasting
@@ -354,11 +356,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                transactionDate.getFullYear() === nextYear;
       });
 
-      const currentMonthIncome = currentMonthTransactions
+      const monthlyIncome = targetMonthTransactions
         .filter(t => t.type === 'income')
         .reduce((sum, t) => sum + parseFloat(t.amount), 0);
 
-      const currentMonthExpenses = currentMonthTransactions
+      const monthlyExpenses = targetMonthTransactions
         .filter(t => t.type === 'expense')
         .reduce((sum, t) => sum + parseFloat(t.amount), 0);
 
@@ -373,12 +375,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const totalSavings = savingsPots
         .reduce((sum, pot) => sum + parseFloat(pot.currentAmount || '0'), 0);
 
-      // Total balance includes all transactions (past and future)
-      const allIncomeTransactions = transactions.filter(t => t.type === 'income');
-      const allExpenseTransactions = transactions.filter(t => t.type === 'expense');
-      const totalIncome = allIncomeTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
-      const totalExpenses = allExpenseTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
-      const totalBalance = totalIncome - totalExpenses + totalSavings;
+      // Total balance is monthly income minus monthly expenses (excludes savings)
+      const totalBalance = monthlyIncome - monthlyExpenses;
 
       // Sort transactions by date descending for recent transactions
       const sortedTransactions = transactions.sort((a, b) => 
@@ -387,9 +385,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         totalBalance,
-        monthlyIncome: currentMonthIncome,
-        monthlyExpenses: currentMonthExpenses,
+        monthlyIncome,
+        monthlyExpenses,
         totalSavings,
+        currentMonth: targetMonth,
+        currentYear: targetYear,
         recentTransactions: sortedTransactions.slice(0, 5),
         forecast: {
           nextMonthIncome,

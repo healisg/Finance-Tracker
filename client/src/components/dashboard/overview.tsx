@@ -1,4 +1,4 @@
-import { ArrowUp, ArrowDown, Car, Edit2, Trash2, Wallet, ExternalLink, TrendingUp, TrendingDown, PiggyBank } from "lucide-react";
+import { ArrowUp, ArrowDown, Car, Edit2, Trash2, Wallet, ExternalLink, TrendingUp, TrendingDown, PiggyBank, ChevronLeft, ChevronRight } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCurrency } from "@/hooks/use-currency";
 import { useToast } from "@/hooks/use-toast";
@@ -7,12 +7,15 @@ import type { DashboardSummary, Transaction } from "@shared/schema";
 import CashFlowChart from "@/components/charts/cash-flow-chart";
 import ExpenseCategoriesChart from "@/components/charts/expense-categories-chart";
 import ExpenseSummary from "@/components/expense-groups/expense-summary";
+import { useState } from "react";
 
 interface DashboardSummary {
   totalBalance: number;
   monthlyIncome: number;
   monthlyExpenses: number;
   totalSavings: number;
+  currentMonth: number;
+  currentYear: number;
   recentTransactions: Array<{
     id: string;
     type: string;
@@ -34,12 +37,40 @@ interface OverviewProps {
 }
 
 export default function Overview({ onEditTransaction, onNavigateToIncome }: OverviewProps) {
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  
   const { data: summary, isLoading } = useQuery<DashboardSummary>({
-    queryKey: ["/api/dashboard/summary"],
+    queryKey: ["/api/dashboard/summary", selectedMonth, selectedYear],
+    queryFn: () => apiRequest("GET", `/api/dashboard/summary?month=${selectedMonth}&year=${selectedYear}`),
   });
   const { formatCurrency } = useCurrency();
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  const handlePreviousMonth = () => {
+    if (selectedMonth === 1) {
+      setSelectedMonth(12);
+      setSelectedYear(selectedYear - 1);
+    } else {
+      setSelectedMonth(selectedMonth - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (selectedMonth === 12) {
+      setSelectedMonth(1);
+      setSelectedYear(selectedYear + 1);
+    } else {
+      setSelectedMonth(selectedMonth + 1);
+    }
+  };
+
+  const getMonthName = (month: number) => {
+    const date = new Date(2000, month - 1, 1);
+    return date.toLocaleDateString('en-US', { month: 'long' });
+  };
 
   const deleteTransactionMutation = useMutation({
     mutationFn: async (transactionId: string) => {
@@ -99,18 +130,36 @@ export default function Overview({ onEditTransaction, onNavigateToIncome }: Over
         {/* Total Balance Card */}
         <div className="metric-card metric-card-gradient-blue">
           <div className="relative z-10">
-            <div className="flex mb-4 items-center justify-between">
+            <div className="flex mb-2 items-center justify-between">
               <p className="text-xs text-white/60 flex items-center gap-1 font-geist">
                 <Wallet className="w-4 h-4" strokeWidth={1.5} />
-                Total Balance
+                Net Balance
               </p>
-              <span className="text-xs text-green-400 font-geist">+12.5%</span>
+              <div className="flex items-center gap-1">
+                <button 
+                  onClick={handlePreviousMonth}
+                  className="w-6 h-6 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                >
+                  <ChevronLeft className="w-3 h-3" strokeWidth={2} />
+                </button>
+                <span className="text-xs text-white/80 font-geist min-w-[80px] text-center">
+                  {getMonthName(selectedMonth)} {selectedYear}
+                </span>
+                <button 
+                  onClick={handleNextMonth}
+                  className="w-6 h-6 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                >
+                  <ChevronRight className="w-3 h-3" strokeWidth={2} />
+                </button>
+              </div>
             </div>
-            <div className="text-xl sm:text-2xl mb-4 sm:mb-6 font-jakarta font-medium">
+            <div className={`text-xl sm:text-2xl mb-4 sm:mb-6 font-jakarta font-medium ${
+              (summary?.totalBalance || 0) >= 0 ? 'text-green-400' : 'text-red-400'
+            }`}>
               {formatCurrency(summary?.totalBalance || 0)}
             </div>
             <div className="flex items-center justify-between text-xs">
-              <button className="underline underline-offset-2 font-geist">View Details</button>
+              <span className="text-white/60 font-geist">Income - Expenses</span>
               <button className="w-7 h-7 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
                 <ExternalLink className="w-4 h-4" strokeWidth={1.5} />
               </button>
