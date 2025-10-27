@@ -234,3 +234,26 @@ export const EXPENSE_GROUPS = {
 } as const;
 
 export type ExpenseGroup = typeof EXPENSE_GROUPS[keyof typeof EXPENSE_GROUPS];
+
+// Dashboard Summary Type
+export interface DashboardSummary {
+  totalBalance: number;
+  monthlyIncome: number;
+  monthlyExpenses: number;
+  totalSavings: number;
+  currentMonth: number;
+  currentYear: number;
+  recentTransactions: Array<{
+    id: string;
+    type: string;
+    amount: string;
+    description: string;
+    date: string;
+    category: string;
+  }>;
+  forecast?: {
+    nextMonthIncome: number;
+    nextMonthExpenses: number;
+    nextMonthNet: number;
+  };
+}

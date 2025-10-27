@@ -9,28 +9,6 @@ import ExpenseCategoriesChart from "@/components/charts/expense-categories-chart
 import ExpenseSummary from "@/components/expense-groups/expense-summary";
 import { useState } from "react";
 
-interface DashboardSummary {
-  totalBalance: number;
-  monthlyIncome: number;
-  monthlyExpenses: number;
-  totalSavings: number;
-  currentMonth: number;
-  currentYear: number;
-  recentTransactions: Array<{
-    id: string;
-    type: string;
-    amount: string;
-    description: string;
-    date: string;
-    category: string;
-  }>;
-  forecast?: {
-    nextMonthIncome: number;
-    nextMonthExpenses: number;
-    nextMonthNet: number;
-  };
-}
-
 interface OverviewProps {
   onEditTransaction?: (transaction: Transaction) => void;
   onNavigateToIncome?: () => void;
@@ -44,7 +22,10 @@ export default function Overview({ onEditTransaction, onNavigateToIncome, onNavi
 
   const { data: summary, isLoading } = useQuery<DashboardSummary>({
     queryKey: ["/api/dashboard/summary", selectedMonth, selectedYear],
-    queryFn: () => apiRequest("GET", `/api/dashboard/summary?month=${selectedMonth}&year=${selectedYear}`),
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/dashboard/summary?month=${selectedMonth}&year=${selectedYear}`);
+      return response.json();
+    },
   });
   const { formatCurrency } = useCurrency();
   const queryClient = useQueryClient();
