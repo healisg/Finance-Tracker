@@ -67,6 +67,17 @@ export default function Overview({ onEditTransaction, onNavigateToIncome }: Over
     }
   };
 
+  const handleToday = () => {
+    const today = new Date();
+    setSelectedMonth(today.getMonth() + 1);
+    setSelectedYear(today.getFullYear());
+  };
+
+  const isCurrentMonth = () => {
+    const today = new Date();
+    return selectedMonth === today.getMonth() + 1 && selectedYear === today.getFullYear();
+  };
+
   const getMonthName = (month: number) => {
     const date = new Date(2000, month - 1, 1);
     return date.toLocaleDateString('en-US', { month: 'long' });
@@ -139,6 +150,7 @@ export default function Overview({ onEditTransaction, onNavigateToIncome }: Over
                 <button 
                   onClick={handlePreviousMonth}
                   className="w-6 h-6 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                  title="Previous month"
                 >
                   <ChevronLeft className="w-3 h-3" strokeWidth={2} />
                 </button>
@@ -148,9 +160,19 @@ export default function Overview({ onEditTransaction, onNavigateToIncome }: Over
                 <button 
                   onClick={handleNextMonth}
                   className="w-6 h-6 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                  title="Next month"
                 >
                   <ChevronRight className="w-3 h-3" strokeWidth={2} />
                 </button>
+                {!isCurrentMonth() && (
+                  <button 
+                    onClick={handleToday}
+                    className="ml-1 px-2 h-6 text-[10px] flex items-center justify-center rounded-full bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 transition-colors font-geist"
+                    title="Go to current month"
+                  >
+                    Today
+                  </button>
+                )}
               </div>
             </div>
             <div className={`text-xl sm:text-2xl mb-4 sm:mb-6 font-jakarta font-medium ${
@@ -237,7 +259,9 @@ export default function Overview({ onEditTransaction, onNavigateToIncome }: Over
       {/* Next Month Forecast */}
       {summary?.forecast && (summary.forecast.nextMonthIncome > 0 || summary.forecast.nextMonthExpenses > 0) && (
         <div className="px-3 sm:px-4 lg:px-8 mb-4 sm:mb-6 forecast-card">
-          <h3 className="text-base sm:text-lg font-medium text-white mb-3 sm:mb-4 font-geist">Next Month Forecast</h3>
+          <h3 className="text-base sm:text-lg font-medium text-white mb-3 sm:mb-4 font-geist">
+            {isCurrentMonth() ? 'Next Month Forecast' : 'Following Month Forecast'}
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 transition-all duration-300 hover:transform hover:scale-105 hover:bg-white/10">
               <div className="flex items-center gap-2 mb-2">

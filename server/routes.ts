@@ -333,6 +333,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const transactions = await storage.getTransactions(DEFAULT_USER_ID);
       const savingsPots = await storage.getSavingsPots(DEFAULT_USER_ID);
+      const recurringExpenses = await storage.getRecurringExpenses(DEFAULT_USER_ID);
 
       const now = new Date();
       // Allow filtering by specific month/year from query params
@@ -364,13 +365,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .filter(t => t.type === 'expense')
         .reduce((sum, t) => sum + parseFloat(t.amount), 0);
 
-      const nextMonthIncome = nextMonthTransactions
+      let nextMonthIncome = nextMonthTransactions
         .filter(t => t.type === 'income')
         .reduce((sum, t) => sum + parseFloat(t.amount), 0);
 
-      const nextMonthExpenses = nextMonthTransactions
+      let nextMonthExpenses = nextMonthTransactions
         .filter(t => t.type === 'expense')
         .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+
+      // If next month has no transactions, estimate based on recurring expenses
+      if (nextMonthTransactions.length === 0) {
+        const activeRecurringExpenses = recurringExpenses.filter(re => re.isActive);
+        nextMonthExpenses = activeRecurringExpenses.reduce((sum, re) => sum + parseFloat(re.amount), 0);
+        
+        // Estimate income based on current month if available, or average of last 3 months
+        if (monthlyIncome > 0) {
+          nextMonthIncome = monthlyIncome;
+        } else {
+          const lastThreeMonths = [];
+          for (let i = 1; i <= 3; i++) {
+            const pastMonth = targetMonth - i;
+            const pastYear = pastMonth <= 0 ? targetYear - 1 : targetYear;
+            const adjustedMonth = pastMonth <= 0 ? 12 + pastMonth : pastMonth;
+            
+            const pastMonthIncome = transactions
+              .filter(t => {
+                const transactionDate = new Date(t.date);
+                return t.type === 'income' &&
+                       transactionDate.getMonth() + 1 === adjustedMonth && 
+                       transactionDate.getFullYear() === pastYear;
+              })
+              .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+            
+            if (pastMonthIncome > 0) {
+              lastThreeMonths.push(pastMonthIncome);
+            }
+          }
+          
+          if (lastThreeMonths.length > 0) {
+            nextMonthIncome = lastThreeMonths.reduce((sum, val) => sum + val, 0) / lastThreeMonths.length;
+          }
+        }
+      }
 
       const totalSavings = savingsPots
         .reduce((sum, pot) => sum + parseFloat(pot.currentAmount || '0'), 0);
