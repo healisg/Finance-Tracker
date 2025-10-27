@@ -24,14 +24,18 @@ interface ExpenseGroupData {
   };
 }
 
-export default function Expenses() {
+interface ExpensesProps {
+  expandedGroup?: string | null;
+}
+
+export default function Expenses({ expandedGroup }: ExpensesProps) {
   const { formatCurrency } = useCurrency();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [expandedGroups, setExpandedGroups] = useState<{[key: string]: boolean}>({
-    fundamentals: false,
-    fun: false,
-    futureYou: false
+    fundamentals: expandedGroup === 'fundamentals',
+    fun: expandedGroup === 'fun',
+    futureYou: expandedGroup === 'futureYou'
   });
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);

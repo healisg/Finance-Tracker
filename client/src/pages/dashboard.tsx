@@ -58,6 +58,7 @@ export default function Dashboard() {
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [expandedExpenseGroup, setExpandedExpenseGroup] = useState<string | null>(null);
 
   const openEditModal = (transaction: Transaction) => {
     setEditTransaction(transaction);
@@ -69,14 +70,23 @@ export default function Dashboard() {
     setEditTransaction(null);
   };
 
+  const handleNavigateToExpenses = (group: 'fundamentals' | 'fun' | 'futureYou') => {
+    setExpandedExpenseGroup(group);
+    setActiveSection('expenses');
+  };
+
   const renderSection = () => {
     switch (activeSection) {
       case 'overview':
-        return <Overview onEditTransaction={openEditModal} onNavigateToIncome={() => setActiveSection('income')} />;
+        return <Overview 
+          onEditTransaction={openEditModal} 
+          onNavigateToIncome={() => setActiveSection('income')}
+          onNavigateToExpenses={handleNavigateToExpenses}
+        />;
       case 'income':
         return <Income />;
       case 'expenses':
-        return <Expenses />;
+        return <Expenses expandedGroup={expandedExpenseGroup} />;
       case 'savings':
         return <Savings />;
       case 'debts':

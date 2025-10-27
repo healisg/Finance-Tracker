@@ -34,12 +34,13 @@ interface DashboardSummary {
 interface OverviewProps {
   onEditTransaction?: (transaction: Transaction) => void;
   onNavigateToIncome?: () => void;
+  onNavigateToExpenses?: (group: string) => void; // Added for navigation to expenses
 }
 
-export default function Overview({ onEditTransaction, onNavigateToIncome }: OverviewProps) {
+export default function Overview({ onEditTransaction, onNavigateToIncome, onNavigateToExpenses }: OverviewProps) {
   const [selectedMonth, setSelectedMonth] = useState(10); // October
   const [selectedYear, setSelectedYear] = useState(2025);
-  
+
   const { data: summary, isLoading } = useQuery<DashboardSummary>({
     queryKey: ["/api/dashboard/summary", selectedMonth, selectedYear],
     queryFn: () => apiRequest("GET", `/api/dashboard/summary?month=${selectedMonth}&year=${selectedYear}`),
@@ -307,7 +308,10 @@ export default function Overview({ onEditTransaction, onNavigateToIncome }: Over
 
       {/* Expense Groups Summary */}
       <div className="px-3 sm:px-4 lg:px-8 py-3 sm:py-4">
-        <ExpenseSummary onNavigateToIncome={onNavigateToIncome} />
+        <ExpenseSummary 
+          onNavigateToIncome={onNavigateToIncome}
+          onNavigateToExpenses={onNavigateToExpenses}
+        />
       </div>
 
       {/* Recent Transactions */}
