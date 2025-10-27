@@ -340,14 +340,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const targetMonth = req.query.month ? parseInt(req.query.month as string) : now.getMonth() + 1;
       const targetYear = req.query.year ? parseInt(req.query.year as string) : now.getFullYear();
       
+      console.log(`Dashboard Summary - Target: ${targetMonth}/${targetYear}, Total transactions: ${transactions.length}`);
+      
       const nextMonth = targetMonth + 1 > 12 ? 1 : targetMonth + 1;
       const nextYear = targetMonth + 1 > 12 ? targetYear + 1 : targetYear;
 
       // Calculate target month totals
       const targetMonthTransactions = transactions.filter(t => {
         const transactionDate = new Date(t.date);
-        return transactionDate.getMonth() + 1 === targetMonth && 
-               transactionDate.getFullYear() === targetYear;
+        const txMonth = transactionDate.getMonth() + 1;
+        const txYear = transactionDate.getFullYear();
+        return txMonth === targetMonth && txYear === targetYear;
       });
 
       // Calculate next month totals for forecasting
@@ -357,13 +360,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
                transactionDate.getFullYear() === nextYear;
       });
 
-      const monthlyIncome = targetMonthTransactions
-        .filter(t => t.type === 'income')
-        .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+      const incomeTransactions = targetMonthTransactions.filter(t => t.type === 'income');
+      console.log(`Found ${incomeTransactions.length} income transactions for ${targetMonth}/${targetYear}`);
+      incomeTransactions.forEach(t => console.log(`  - ${t.description}: £${t.amount} on ${new Date(t.date).toLocaleDateString()}`));
+      const monthlyIncome = incomeTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
 
-      const monthlyExpenses = targetMonthTransactions
-        .filter(t => t.type === 'expense')
-        .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+      const expenseTransactions = targetMonthTransactions.filter(t => t.type === 'expense');
+      const monthlyExpenses = expenseTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
 
       let nextMonthIncome = nextMonthTransactions
         .filter(t => t.type === 'income')
