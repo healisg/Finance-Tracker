@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { CreditCard, Calendar, AlertTriangle, Utensils, Car, ShoppingBag, Coffee, Heart, Gamepad2, Target, ChevronDown, ChevronUp, Tag, Users, User, Edit2, Trash2 } from "lucide-react";
 import { useCurrency } from "@/hooks/use-currency";
@@ -43,6 +43,18 @@ export default function Expenses({ expandedGroup }: ExpensesProps) {
   const { data: transactions, isLoading } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions"],
   });
+
+  // Scroll to Monthly Expense Groups section when expandedGroup is set
+  useEffect(() => {
+    if (expandedGroup) {
+      setTimeout(() => {
+        const section = document.getElementById('monthly-expense-groups');
+        if (section) {
+          section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
+  }, [expandedGroup]);
 
   const deleteTransactionMutation = useMutation({
     mutationFn: (id: string) => apiRequest("DELETE", `/api/transactions/${id}`),
@@ -328,7 +340,7 @@ export default function Expenses({ expandedGroup }: ExpensesProps) {
       </div>
 
       {/* Expense Groups Section */}
-      <div className="mt-8">
+      <div className="mt-8" id="monthly-expense-groups">
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-white mb-2 font-jakarta">Monthly Expense Groups</h2>
           <p className="text-white/60 font-geist">
