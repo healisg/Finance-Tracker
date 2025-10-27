@@ -1,6 +1,6 @@
-import { 
+import {
   users, transactions, savingsPots, debts, investments, budgets, financialGoals, recurringExpenses,
-  type User, type InsertUser, 
+  type User, type InsertUser,
   type Transaction, type InsertTransaction,
   type SavingsPot, type InsertSavingsPot,
   type Debt, type InsertDebt,
@@ -17,56 +17,56 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  
+
   // Transaction methods
   getTransactions(userId: string): Promise<Transaction[]>;
   getTransactionById(id: string): Promise<Transaction | undefined>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
   updateTransaction(id: string, transaction: Partial<InsertTransaction>): Promise<Transaction | undefined>;
   deleteTransaction(id: string): Promise<boolean>;
-  
+
   // Savings Pot methods
   getSavingsPots(userId: string): Promise<SavingsPot[]>;
   getSavingsPotById(id: string): Promise<SavingsPot | undefined>;
   createSavingsPot(pot: InsertSavingsPot): Promise<SavingsPot>;
   updateSavingsPot(id: string, pot: Partial<InsertSavingsPot>): Promise<SavingsPot | undefined>;
   deleteSavingsPot(id: string): Promise<boolean>;
-  
+
   // Debt methods
   getDebts(userId: string): Promise<Debt[]>;
   getDebtById(id: string): Promise<Debt | undefined>;
   createDebt(debt: InsertDebt): Promise<Debt>;
   updateDebt(id: string, debt: Partial<InsertDebt>): Promise<Debt | undefined>;
   deleteDebt(id: string): Promise<boolean>;
-  
+
   // Investment methods
   getInvestments(userId: string): Promise<Investment[]>;
   getInvestmentById(id: string): Promise<Investment | undefined>;
   createInvestment(investment: InsertInvestment): Promise<Investment>;
   updateInvestment(id: string, investment: Partial<InsertInvestment>): Promise<Investment | undefined>;
   deleteInvestment(id: string): Promise<boolean>;
-  
+
   // Budget methods
   getBudgets(userId: string, month?: number, year?: number): Promise<Budget[]>;
   getBudgetById(id: string): Promise<Budget | undefined>;
   createBudget(budget: InsertBudget): Promise<Budget>;
   updateBudget(id: string, budget: Partial<InsertBudget>): Promise<Budget | undefined>;
   deleteBudget(id: string): Promise<boolean>;
-  
+
   // Financial Goal methods
   getFinancialGoals(userId: string): Promise<FinancialGoal[]>;
   getFinancialGoalById(id: string): Promise<FinancialGoal | undefined>;
   createFinancialGoal(goal: InsertFinancialGoal): Promise<FinancialGoal>;
   updateFinancialGoal(id: string, goal: Partial<InsertFinancialGoal>): Promise<FinancialGoal | undefined>;
   deleteFinancialGoal(id: string): Promise<boolean>;
-  
+
   // Recurring Expense methods
   getRecurringExpenses(userId: string): Promise<RecurringExpense[]>;
   getRecurringExpenseById(id: string): Promise<RecurringExpense | undefined>;
   createRecurringExpense(expense: InsertRecurringExpense): Promise<RecurringExpense>;
   updateRecurringExpense(id: string, expense: Partial<InsertRecurringExpense>): Promise<RecurringExpense | undefined>;
   deleteRecurringExpense(id: string): Promise<boolean>;
-  
+
   // Recurring expense automation
   generateRecurringTransactions(month: number, year: number): Promise<Transaction[]>;
 }
@@ -345,7 +345,7 @@ export class DatabaseStorage implements IStorage {
   // Generate recurring transactions for a specific month
   async generateRecurringTransactions(month: number, year: number): Promise<Transaction[]> {
     const userId = "default-user"; // For now, using default user
-    
+
     // Get all active recurring expenses for the user
     const activeRecurringExpenses = await db.select()
       .from(recurringExpenses)
@@ -359,7 +359,7 @@ export class DatabaseStorage implements IStorage {
     for (const recurring of activeRecurringExpenses) {
       // Calculate the date for this recurring expense
       const targetDate = new Date(year, month - 1, recurring.dayOfMonth);
-      
+
       // Check if we already have a transaction for this recurring expense in this month
       const existingTransactionsInMonth = await db.select()
         .from(transactions)
