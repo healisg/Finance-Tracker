@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Banknote, Calendar, Target, Briefcase, Laptop, TrendingUp } from "lucide-react";
+import { Banknote, Calendar, Target, Briefcase, Laptop, TrendingUp, Edit2, Trash2 } from "lucide-react";
 import { useCurrency } from "@/hooks/use-currency";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -170,12 +170,12 @@ export default function Income() {
         <div className="space-y-3">
           {incomeTransactions.length > 0 ? (
             incomeTransactions.slice(0, 5).map((transaction: any) => (
-              <div key={transaction.id} className="flex items-center justify-between py-2 border-b border-white/10 last:border-b-0">
-                <div className="flex items-center gap-3">
+              <div key={transaction.id} className="flex items-center justify-between py-2 border-b border-white/10 last:border-b-0 group">
+                <div className="flex items-center gap-3 flex-1">
                   <div className="w-8 h-8 bg-green-600/20 rounded-lg flex items-center justify-center">
                     {getIconForCategory(transaction.category)}
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-medium font-geist">{transaction.description}</p>
                     <p className="text-xs text-white/60 font-geist">
                       {new Date(transaction.date).toLocaleDateString('en-US', { 
@@ -186,9 +186,27 @@ export default function Income() {
                     </p>
                   </div>
                 </div>
-                <span className="text-sm font-medium text-green-400 font-geist">
-                  +{formatCurrency(parseFloat(transaction.amount))}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-green-400 font-geist">
+                    +{formatCurrency(parseFloat(transaction.amount))}
+                  </span>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => handleEditTransaction(transaction)}
+                      className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+                      title="Edit transaction"
+                    >
+                      <Edit2 className="w-4 h-4 text-blue-400" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteTransaction(transaction.id)}
+                      className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+                      title="Delete transaction"
+                    >
+                      <Trash2 className="w-4 h-4 text-red-400" />
+                    </button>
+                  </div>
+                </div>
               </div>
             ))
           ) : (
