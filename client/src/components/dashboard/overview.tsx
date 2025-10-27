@@ -37,9 +37,8 @@ interface OverviewProps {
 }
 
 export default function Overview({ onEditTransaction, onNavigateToIncome }: OverviewProps) {
-  const now = new Date();
-  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(10); // October
+  const [selectedYear, setSelectedYear] = useState(2025);
   
   const { data: summary, isLoading } = useQuery<DashboardSummary>({
     queryKey: ["/api/dashboard/summary", selectedMonth, selectedYear],
@@ -68,14 +67,12 @@ export default function Overview({ onEditTransaction, onNavigateToIncome }: Over
   };
 
   const handleToday = () => {
-    const today = new Date();
-    setSelectedMonth(today.getMonth() + 1);
-    setSelectedYear(today.getFullYear());
+    setSelectedMonth(10); // October
+    setSelectedYear(2025);
   };
 
   const isCurrentMonth = () => {
-    const today = new Date();
-    return selectedMonth === today.getMonth() + 1 && selectedYear === today.getFullYear();
+    return selectedMonth === 10 && selectedYear === 2025;
   };
 
   const getMonthName = (month: number) => {
