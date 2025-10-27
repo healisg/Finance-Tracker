@@ -38,6 +38,7 @@ interface OverviewProps {
 }
 
 export default function Overview({ onEditTransaction, onNavigateToIncome, onNavigateToExpenses }: OverviewProps) {
+  // Default to October 2025 as the "current" month
   const [selectedMonth, setSelectedMonth] = useState(10); // October
   const [selectedYear, setSelectedYear] = useState(2025);
 
